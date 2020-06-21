@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "313929168758",
+    "firebase_url": "https://motorridev2.firebaseio.com",
+    "project_id": "motorridev2",
+    "storage_bucket": "motorridev2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313929168758:android:14e84d39a4fca5f0296c57",
+        "android_client_info": {
+          "package_name": "knovuslab.motorride.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "313929168758-rofjmjcsh50gjvkiles3a71ca48d64cb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "knovuslab.motorride.com",
+            "certificate_hash": "4274a77ee6d5c4e21c446e6e3a5b50ac744b40c8"
+          }
+        },
+        {
+          "client_id": "313929168758-jspdhpqctj25e3gibdv5scvlmk8cbshk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw2JZokviJ1pBHIcpmorPXDTTrrGVNtfo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "313929168758-jspdhpqctj25e3gibdv5scvlmk8cbshk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
