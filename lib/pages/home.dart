@@ -15,15 +15,14 @@ class HomePage extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           MyGoogleMap(),
-
-          Container(
+         /*  Container(
             height: 80,
             child: AppBar(
               iconTheme: IconThemeData(color: MyTheme.primaryColor),
               elevation: 0,
-              backgroundColor: MyTheme.bgColor,
+              backgroundColor: Color(0x00),
             ),
-          ),
+          ), */
           
         ],
       ),

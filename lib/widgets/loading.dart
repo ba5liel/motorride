@@ -28,9 +28,8 @@ class LoadingWidget extends StatelessWidget {
                 Center(child: Image.asset('assets/images/logo.png')),
               ]),
             ),
-            SizedBox(height: 50),
-            Text("Initialzing..."),
-            SizedBox(height: 50)
+            SizedBox(height: 20),
+            Text("Initialzing...", style: TextStyle(color: Colors.white),),
           ],
         ),
       ),

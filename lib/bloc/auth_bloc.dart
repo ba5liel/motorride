@@ -150,8 +150,8 @@ class Authentication {
     currentUser = new User(
         userID: user.uid, name: user.displayName, phone: user.phoneNumber);
     _setUser(currentUser);
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (BuildContext context) {
+    Navigator
+        .pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) {
       return HomePage();
     }));
   }

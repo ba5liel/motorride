@@ -6,8 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:motorride/bloc/server_bloc.dart';
+import 'package:motorride/config/configs.dart';
 import 'package:motorride/modals/driver.dart';
+import 'package:motorride/modals/user.dart';
 import 'package:motorride/util/formulas.dart';
+import 'package:google_maps_webservice/places.dart' as ws;
+import 'package:flutter_google_places/flutter_google_places.dart';
 
 LatLng preCenter = LatLng(9.0336617, 38.7512801);
 
@@ -23,7 +27,7 @@ class MapBloc with ChangeNotifier, NodeServer {
   LatLng _currentLocation;
   List<Marker> _markers = List();
   bool _permission = false;
-
+  ws.Prediction _prediction;
   LatLng get center => _center;
   List<Driver> get drivers => _drivers;
   Completer<GoogleMapController> get completer => _completer;
@@ -55,15 +59,35 @@ class MapBloc with ChangeNotifier, NodeServer {
           ? _drivers.add(new Driver(data["id"])..setCords(newCords))
           : _drivers[index].setCords(newCords);
       _markers = _drivers.map((e) => new Marker(
-        position: e.cords,
-        markerId: MarkerId(e.id),
-        infoWindow: InfoWindow(title: "Driver", onTap: (){
-          print("request driver");
-        })
-      ));
+          position: e.cords,
+          markerId: MarkerId(e.id),
+          infoWindow: InfoWindow(
+              title: "Driver",
+              onTap: () {
+                print("request driver");
+              })));
+      _markers.add(new Marker(
+          position: _center,
+          markerId: MarkerId(currentUser.name ?? currentUser.phone),
+          infoWindow: InfoWindow(
+              title: "You",
+              onTap: () {
+                print("request driver");
+              })));
       notifyListeners();
     });
+
+    _currentLocation = await getCurrentLocation();
     _center = _currentLocation;
+    _markers.add(new Marker(
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+        position: _center,
+        markerId: MarkerId(currentUser.name ?? currentUser.phone),
+        infoWindow: InfoWindow(
+            title: "You",
+            onTap: () {
+              print("request driver");
+            })));
     notifyListeners();
   }
 
@@ -100,5 +124,28 @@ class MapBloc with ChangeNotifier, NodeServer {
       //location = null;
     }
     return null;
+  }
+
+  void openAutoComplete(BuildContext context) async {
+    try {
+      _prediction = await PlacesAutocomplete.show(
+        onError: (e) {
+          print("Error-e\n\n\n");
+          print(e.hasNoResults);
+          print(e.errorMessage);
+        },
+        context: context,
+        apiKey: Config.googleMapApiKey,
+        mode: Mode.overlay, // Mode.overlay
+        language: "en",
+        components: [ws.Component(ws.Component.country, "et")],
+      );
+      print("\n\n\n\n");
+      print(_prediction);
+    } catch (e, t) {
+      print(e);
+      print(t);
+      throw e;
+    }
   }
 }
