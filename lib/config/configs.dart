@@ -1,4 +1,4 @@
 class Config{
-  static String websocketurl = "https://317a704aac7d.ngrok.io/";
-  static String googleMapApiKey = "API KEY";
+  static String websocketurl = "https://e2412603bcd4.ngrok.io/";
+  static String googleMapApiKey = "AIzaSyCQcLxm1sU5ZszNeYwawT19PzWMqEu--hs";
 }

@@ -33,7 +33,7 @@ class MapBloc with ChangeNotifier, NodeServer {
   Completer<GoogleMapController> get completer => _completer;
   List<Marker> get markers => _markers;
   LatLng get currentLocation => _currentLocation;
-
+  String address = "unnamed road";
   void init() async {
     print("MapBloc Initalized");
     preCenter = LatLng(9.0336617, 38.7512801);
@@ -142,6 +142,28 @@ class MapBloc with ChangeNotifier, NodeServer {
       );
       print("\n\n\n\n");
       print(_prediction);
+      if (_prediction != null) {
+        ws.GoogleMapsPlaces _places = new ws.GoogleMapsPlaces(
+            apiKey: Config.googleMapApiKey); //Same API_KEY as above
+        ws.PlacesDetailsResponse detail =
+            await _places.getDetailsByPlaceId(_prediction.placeId);
+
+        address = _prediction.description;
+        LatLng dest = new LatLng(detail.result.geometry.location.lat,
+            detail.result.geometry.location.lng);
+
+        _markers.add((new Marker(
+            position: dest,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+            markerId: MarkerId(
+                "${currentUser.name}dest" ?? "${currentUser.phone}dest"),
+            infoWindow: InfoWindow(
+                title: "Destination",
+                onTap: () {
+                  print("request driver");
+                }))));
+      }
     } catch (e, t) {
       print(e);
       print(t);

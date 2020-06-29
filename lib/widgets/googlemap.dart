@@ -135,11 +135,35 @@ class MyGoogleMap extends StatelessWidget {
                               ],
                             ),
                           ),
-                          Padding(
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(25)),
+                              boxShadow: [
+                                BoxShadow(
+                                    blurRadius: 2,
+                                    color: Color(0x00).withOpacity(.16),
+                                    offset: Offset(0,
+                                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                                BoxShadow(
+                                    blurRadius: 3,
+                                    color: Color(0x00).withOpacity(.23),
+                                    offset: Offset(0,
+                                        1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                              ],
+                            ),
+                            width: 130,
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              "unnamed road",
-                              style: TextStyle(color: MyTheme.secondaryColor),
+                            margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                            child: Row(
+                              children: <Widget>[
+                                Icon(Icons.edit_location),
+                                Text(
+                                  context.watch<MapBloc>().address,
+                                  style: TextStyle(color: MyTheme.secondaryColor),
+                                ),
+                              ],
                             ),
                           )
                         ],
