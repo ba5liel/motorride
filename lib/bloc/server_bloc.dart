@@ -21,6 +21,12 @@ class NodeServer {
         'autoConnect': false, // optional
       });
     }
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      if (!_socketIO.connected) {
+        print("_socketIO.connect() -- called");
+        _socketIO.connect();
+      }
+    });
     if (_socketIO.connect() != null) {
       print("NodeServer init success\n\n");
     } else {
