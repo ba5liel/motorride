@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,20 +53,25 @@ class MapBloc with ChangeNotifier, NodeServer {
     });
 
     //listen for driver location
-    getJoinedLocation().stream.listen((Map<String, dynamic> data) {
+    getJoinedLocation().stream.listen((Map<String, dynamic> data) async {
       int index = _drivers.indexWhere((element) => element.id == data["id"]);
       LatLng newCords = new LatLng(data["lat"], data["lng"]);
       index == -1
           ? _drivers.add(new Driver(data["id"])..setCords(newCords))
           : _drivers[index].setCords(newCords);
-      _markers = _drivers.map((e) => new Marker(
-          position: e.cords,
-          markerId: MarkerId(e.id),
-          infoWindow: InfoWindow(
-              title: "Driver",
-              onTap: () {
-                print("request driver");
-              })));
+      BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
+          await getBytesFromAsset("assets/images/driver_marker.png", 110));
+      _markers = _drivers
+          .map((Driver e) => new Marker(
+              position: e.cords,
+              icon: iconm,
+              markerId: MarkerId(e.id),
+              infoWindow: InfoWindow(
+                  title: "Driver",
+                  onTap: () {
+                    print("request driver");
+                  })))
+          .toList();
       _markers.add(new Marker(
           position: _center,
           markerId: MarkerId(currentUser.name ?? currentUser.phone),
@@ -169,5 +175,15 @@ class MapBloc with ChangeNotifier, NodeServer {
       print(t);
       throw e;
     }
+  }
+
+  static Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
+        .buffer
+        .asUint8List();
   }
 }

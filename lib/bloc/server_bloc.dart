@@ -36,24 +36,26 @@ class NodeServer {
     _socketIO.on("connect", (_) {
       print("Web socket Connected\n\n\n\n");
       sendLocation(currentUser.userID, preCenter);
+
+      _socketIO.on("joined", (rooms) {
+        print(rooms);
+      });
+      //Subscribe to an event to listen to
+      _socketIO.on('receive_message', (jsonData) {
+        //Convert the JSON data received into a Map
+        Map<String, dynamic> data = json.decode(jsonData);
+        print(data);
+      });
+      _socketIO.on('room_location', (jsonData) {
+        //Convert the JSON data received into a Map
+        Map<String, dynamic> data = jsonData;
+        print('\t\troom_location\nnn');
+        print(data);
+        joinedLocation.add(data);
+      });
+      _socketIO.on('disconnect', (_) => print('disconnect\n\n\n'));
+      _socketIO.on('fromServer', (_) => print(_));
     });
-    _socketIO.on("joined", (rooms) {
-      print(rooms);
-    });
-    //Subscribe to an event to listen to
-    _socketIO.on('receive_message', (jsonData) {
-      //Convert the JSON data received into a Map
-      Map<String, dynamic> data = json.decode(jsonData);
-      print(data);
-    });
-    _socketIO.on('room_location', (jsonData) {
-      //Convert the JSON data received into a Map
-      Map<String, dynamic> data = json.decode(jsonData);
-      print(data);
-      joinedLocation.add(data);
-    });
-    _socketIO.on('disconnect', (_) => print('disconnect\n\n\n'));
-    _socketIO.on('fromServer', (_) => print(_));
   }
 
   void sendLocation(String userId, LatLng cord, {bool keep = false}) {
