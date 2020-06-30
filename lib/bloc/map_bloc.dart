@@ -20,6 +20,7 @@ class MapBloc with ChangeNotifier, NodeServer {
   MapBloc() {
     init();
     initNode();
+    notifyListeners();
   }
   Completer<GoogleMapController> _completer = Completer();
   Location _location = new Location();

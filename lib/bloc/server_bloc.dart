@@ -49,7 +49,7 @@ class NodeServer {
       _socketIO.on('room_location', (jsonData) {
         //Convert the JSON data received into a Map
         Map<String, dynamic> data = jsonData;
-        print('\t\troom_location\nnn');
+        print('\t\troom_location\n');
         print(data);
         joinedLocation.add(data);
       });
