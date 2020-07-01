@@ -103,6 +103,13 @@ class MapBloc with ChangeNotifier, NodeServer {
     await _location.changeSettings(accuracy: accuracy, interval: interval);
   }
 
+  Future<void> goToCurrentLocation() async {
+    _currentLocation = await getCurrentLocation();
+
+    notifyListeners();
+    print("goToCurrentLocation called notifyListeners()");
+  }
+
   Future<LatLng> getCurrentLocation() async {
     LocationData location;
     try {

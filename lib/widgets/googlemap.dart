@@ -41,64 +41,37 @@ class MyGoogleMap extends StatelessWidget {
                     },
                     markers: Set<Marker>.of(context.watch<MapBloc>().markers),
                   ),
-                  /* Positioned(
-                top: (MediaQuery.of(context).size.height / 2) - 50,
-                left: 25,
-                width: MediaQuery.of(context).size.width - 50,
-                height: (MediaQuery.of(context).size.width / 2) - 50,
-                child: GridView.builder(
-                  itemCount: drivers.length,
-                  gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3),
-                  itemBuilder: (BuildContext context, int index) {
-                    return Card(
-                      elevation: 5.0,
-                      child: new Container(
-                        padding: EdgeInsets.all(10),
-                        alignment: Alignment.center,
-                        child: new Text(
-                          'd_ID ${drivers[index].id}\nLat ${drivers[index].cords.latitude}, Lat ${drivers[index].cords.longitude}',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                    );
-                  },
-                )), */
-                  Container(
-                    margin: EdgeInsets.only(top: 40),
-
-                    /* decoration: BoxDecoration(
-                        color: MyTheme.bgColor,
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * .25,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
                         boxShadow: <BoxShadow>[
                           BoxShadow(
-                              blurRadius: 30,
-                              spreadRadius: 15,
-                              offset: Offset(0, 30),
-                              color: MyTheme.bgColor)
-                        ]), */
+                              color: Colors.white,
+                              blurRadius: 50,
+                              offset: Offset(0, 5),
+                              spreadRadius: 50)
+                        ],
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(50),
+                            bottomRight: Radius.circular(50)),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 40),
                     child: Center(
                       child: Column(
                         children: <Widget>[
                           Container(
                             margin: EdgeInsets.symmetric(horizontal: 12),
                             padding: EdgeInsets.all(6.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(6)),
-                              boxShadow: [
-                                BoxShadow(
-                                    blurRadius: 2,
-                                    color: Color(0x00).withOpacity(.16),
-                                    offset: Offset(0,
-                                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                                BoxShadow(
-                                    blurRadius: 3,
-                                    color: Color(0x00).withOpacity(.23),
-                                    offset: Offset(0,
-                                        1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                              ],
-                            ),
+                            decoration: MyTheme.myPlateDecoration,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
@@ -136,32 +109,21 @@ class MyGoogleMap extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(25)),
-                              boxShadow: [
-                                BoxShadow(
-                                    blurRadius: 2,
-                                    color: Color(0x00).withOpacity(.16),
-                                    offset: Offset(0,
-                                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                                BoxShadow(
-                                    blurRadius: 3,
-                                    color: Color(0x00).withOpacity(.23),
-                                    offset: Offset(0,
-                                        1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                              ],
-                            ),
-                            width: 130,
+                            width: MediaQuery.of(context).size.width,
                             padding: const EdgeInsets.all(8.0),
-                            margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
+                            margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Icon(Icons.edit_location),
+                                Icon(
+                                  Icons.edit_location,
+                                  color: Colors.red,
+                                ),
                                 Text(
                                   context.watch<MapBloc>().address,
-                                  style: TextStyle(color: MyTheme.secondaryColor),
+                                  style: TextStyle(
+                                      color: MyTheme.secondaryColor,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -214,31 +176,50 @@ class MyGoogleMap extends StatelessWidget {
                                     ],
                                   ),
                                   padding: EdgeInsets.all(4.0),
-                                  child: Icon(
-                                    Icons.my_location,
-                                    color: Colors.red,
-                                    size: 36,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(100)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                blurRadius: 0,
+                                                spreadRadius: 1,
+                                                color:
+                                                    Color(0x00).withOpacity(.5),
+                                                offset: Offset(0,
+                                                    0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                                            BoxShadow(
+                                                blurRadius: 0,
+                                                spreadRadius: 1,
+                                                color: Color(0x00)
+                                                    .withOpacity(.05),
+                                                offset: Offset(0,
+                                                    0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                                          ],
+                                        ),
+                                        child: IconButton(
+                                          onPressed: () async {
+                                            await context
+                                                .read<MapBloc>()
+                                                .goToCurrentLocation();
+                                          },
+                                          icon: Icon(
+                                            Icons.my_location,
+                                            color: Colors.red,
+                                            size: 22,
+                                          ),
+                                        ),
+                                      )
+                                    ],
                                   ),
                                 )
                               ],
                             ),
-                            /*  SizedBox(
-                              height: 20,
-                            ),
-                            FlatButton(
-                                padding: EdgeInsets.all(0),
-                                color: MyTheme.secondaryColor,
-                                onPressed: () {},
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.all(20),
-                                  child: Text(
-                                    "set pickup",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 18),
-                                  ),
-                                )) */
                           ],
                         ),
                       ))
