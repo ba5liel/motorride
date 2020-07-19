@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -30,7 +29,7 @@ class MyGoogleMap extends StatelessWidget {
                         zoom: 17.0,
                       ),
                       onMapCreated: (GoogleMapController controller) {
-                        Completer()..complete(controller);
+                        context.read<MapBloc>().setMapContoller = controller;
                       },
                       markers: Set<Marker>.of(context.watch<MapBloc>().markers),
                     );

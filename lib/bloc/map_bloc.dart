@@ -20,7 +20,6 @@ LatLng preCenter = LatLng(9.0336617, 38.7512801);
 class MapBloc with ChangeNotifier, NodeServer {
   MapBloc() {
     init();
-    initNode();
     notifyListeners();
   }
   Location _location = new Location();
@@ -33,6 +32,13 @@ class MapBloc with ChangeNotifier, NodeServer {
   List<Marker> get markers => _markers;
   LatLng get currentLocation => _currentLocation;
   String address = "unnamed road";
+
+  GoogleMapController mapContoller;
+  set setMapContoller(GoogleMapController c) {
+    print('++++++++++GoogleMapController======== settted');
+    mapContoller = c;
+  }
+  
   void init() async {
     print("MapBloc Initalized");
     preCenter = LatLng(9.0336617, 38.7512801);
@@ -120,11 +126,12 @@ class MapBloc with ChangeNotifier, NodeServer {
       {LocationAccuracy accuracy, int interval}) async {
     await _location.changeSettings(accuracy: accuracy, interval: interval);
   }
-
-  Future<void> goToCurrentLocation() async {
-    _currentLocation = await getCurrentLocation();
-
-    notifyListeners();
+   Future<void> goToCurrentLocation() async {
+    mapContoller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: _currentLocation, zoom: 17.0, tilt: 90),
+      ),
+    );
     print("goToCurrentLocation called notifyListeners()");
   }
 

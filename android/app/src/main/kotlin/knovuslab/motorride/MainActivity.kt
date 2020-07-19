@@ -1,4 +1,4 @@
-package knovuslab.motorride.com
+package com.knovuslab.motorrideuser
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -43,10 +43,6 @@ class Register extends StatelessWidget {
                             fillColor: Colors.white, border: InputBorder.none),
                         onInputChanged: (PhoneNumber number) {
                           phoneNumber.add(number.phoneNumber);
-                          print(number.phoneNumber);
-                        },
-                        onInputValidated: (bool value) {
-                          print(value);
                         },
                         ignoreBlank: false,
                         autoValidate: false,
@@ -61,8 +57,6 @@ class Register extends StatelessWidget {
                       color: MyTheme.secondaryColor,
                       onPressed: () {
                         if (formKey.currentState.validate()) {
-                          print("number.phoneNumber");
-                          print(phoneNumber[phoneNumber.length - 1]);
                           auth.onPhoneSignIn(
                               phoneNumber[phoneNumber.length - 1], context);
                         }

@@ -12,7 +12,13 @@ import 'package:motorride/modals/user.dart';
 
 class Authentication {
   SharedPreferences _pref;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'https://www.googleapis.com/auth/user.phonenumbers.read',
+      'https://www.googleapis.com/auth/userinfo.email',
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ],
+  );
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _codeController = new TextEditingController();
   FirebaseUser _user;
@@ -24,7 +30,10 @@ class Authentication {
   }
 
   void _setUser(User user) async {
-    await Firestore.instance.collection('users').document(user.userID).setData(user.toMap());
+    await Firestore.instance
+        .collection('users')
+        .document(user.userID)
+        .setData(user.toMap());
     await _setLoggedIn(true);
     await getPref()
       ..setString("user", json.encode(user.toMap()));
@@ -49,7 +58,6 @@ class Authentication {
         phoneNumber: phone,
         timeout: Duration(seconds: 60),
         verificationCompleted: (AuthCredential credential) async {
-         
           AuthResult result = await _auth.signInWithCredential(credential);
           _user = result.user;
           if (_user != null) {
@@ -149,10 +157,13 @@ class Authentication {
 
   void _createUser(FirebaseUser user, BuildContext context) {
     currentUser = new User(
-        userID: user.uid, name: user.displayName, phone: user.phoneNumber);
+        userID: user.uid,
+        name: user.displayName,
+        phone: user.phoneNumber,
+        rating: 5.0);
     _setUser(currentUser);
-    Navigator
-        .pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) {
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (BuildContext context) {
       return HomePage();
     }));
   }
