@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class Authentication {
   }
 
   void _setUser(User user) async {
+    await Firestore.instance.collection('users').document(user.userID).setData(user.toMap());
     await _setLoggedIn(true);
     await getPref()
       ..setString("user", json.encode(user.toMap()));
@@ -47,8 +49,7 @@ class Authentication {
         phoneNumber: phone,
         timeout: Duration(seconds: 60),
         verificationCompleted: (AuthCredential credential) async {
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
+         
           AuthResult result = await _auth.signInWithCredential(credential);
           _user = result.user;
           if (_user != null) {

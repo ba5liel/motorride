@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,17 +23,13 @@ class MapBloc with ChangeNotifier, NodeServer {
     initNode();
     notifyListeners();
   }
-  Completer<GoogleMapController> _completer = Completer();
   Location _location = new Location();
   List<Driver> _drivers = [];
-  LatLng _center;
   LatLng _currentLocation;
   List<Marker> _markers = List();
   bool _permission = false;
   ws.Prediction _prediction;
-  LatLng get center => _center;
   List<Driver> get drivers => _drivers;
-  Completer<GoogleMapController> get completer => _completer;
   List<Marker> get markers => _markers;
   LatLng get currentLocation => _currentLocation;
   String address = "unnamed road";
@@ -42,59 +39,80 @@ class MapBloc with ChangeNotifier, NodeServer {
     await changeLocationSetting(accuracy: LocationAccuracy.high, interval: 0);
     _currentLocation = await getCurrentLocation();
     //listen for my location change
-    _location.onLocationChanged.listen((event) {
+    _location.onLocationChanged.listen((event) async {
       _currentLocation = LatLng(event.latitude, event.longitude);
-      _center = _currentLocation;
-      if (_center != null &&
+      if (_currentLocation != null &&
           preCenter != null &&
-          _center != preCenter &&
-          MyFormulas.getDistanceFromLatLonInKm(_center.latitude,
-                  _center.longitude, preCenter.latitude, preCenter.longitude) >
-              10) notifyListeners();
+          _currentLocation != preCenter &&
+          MyFormulas.getDistanceFromLatLonInKm(
+                  _currentLocation.latitude,
+                  _currentLocation.longitude,
+                  preCenter.latitude,
+                  preCenter.longitude) >
+              0.05) {
+        sendLocation(currentUser.userID, _currentLocation);
+        _markers.removeWhere(
+            (element) => element.markerId.value == currentUser.userID);
+        _markers.add(new Marker(
+            icon: BitmapDescriptor.fromBytes(
+                await getBytesFromAsset("assets/images/user_place.png", 80)),
+            position: _currentLocation,
+            markerId: MarkerId(currentUser.name ?? currentUser.phone),
+            infoWindow: InfoWindow(title: "You", onTap: () {})));
+      }
     });
 
-    //listen for driver location
-    getJoinedLocation().stream.listen((Map<String, dynamic> data) async {
-      int index = _drivers.indexWhere((element) => element.id == data["id"]);
-      LatLng newCords = new LatLng(data["lat"], data["lng"]);
-      index == -1
-          ? _drivers.add(new Driver(data["id"])..setCords(newCords))
-          : _drivers[index].setCords(newCords);
-      BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
-          await getBytesFromAsset("assets/images/driver_marker.png", 110));
-      _markers = _drivers
-          .map((Driver e) => new Marker(
-              position: e.cords,
-              icon: iconm,
-              markerId: MarkerId(e.id),
-              infoWindow: InfoWindow(
-                  title: "Driver",
-                  onTap: () {
-                    print("request driver");
-                  })))
-          .toList();
-      _markers.add(new Marker(
-          position: _center,
-          markerId: MarkerId(currentUser.name ?? currentUser.phone),
-          infoWindow: InfoWindow(
-              title: "You",
-              onTap: () {
-                print("request driver");
-              })));
-      notifyListeners();
-    });
+    
+    getRoomController().stream.listen((rooms) async {
+      print("======== Room Stream returned a value =========== $rooms");
+      if (rooms != null && rooms.length > 0) {
+        Firestore.instance
+            .collection('drivers')
+            .where("room", whereIn: rooms)
+            .snapshots()
+            .listen((docs) {
+          docs.documents.forEach((doc) {
+            print(
+                "======== Documents Stream returned a value =========== ${doc.data}");
+            int index = _drivers
+                .indexWhere((element) => element.userID == doc.data["userID"]);
+            LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
 
+            index == -1
+                ? _drivers.add(new Driver.fromMap(doc.data)..setCords(newCords))
+                : _drivers[index].setCords(newCords);
+          });
+        });
+
+        BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
+            await getBytesFromAsset("assets/images/motor_icon.png", 80));
+        _markers.clear();
+        _markers.addAll(_drivers
+            .map((Driver e) => new Marker(
+                position: e.cords,
+                icon: iconm,
+                markerId: MarkerId(e.userID),
+                infoWindow: InfoWindow(
+                    title: e.name,
+                    snippet: "${e.phone} ${e.targa}",
+                    onTap: () {})))
+            .toList());
+        _markers.add(new Marker(
+            icon: BitmapDescriptor.fromBytes(
+                await getBytesFromAsset("assets/images/user_place.png", 80)),
+            position: _currentLocation,
+            markerId: MarkerId(currentUser.name ?? currentUser.phone),
+            infoWindow: InfoWindow(title: "You", onTap: () {})));
+        notifyListeners();
+      }
+    });
     _currentLocation = await getCurrentLocation();
-    _center = _currentLocation;
     _markers.add(new Marker(
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-        position: _center,
+        icon: BitmapDescriptor.fromBytes(
+            await getBytesFromAsset("assets/images/user_place.png", 80)),
+        position: _currentLocation,
         markerId: MarkerId(currentUser.name ?? currentUser.phone),
-        infoWindow: InfoWindow(
-            title: "You",
-            onTap: () {
-              print("request driver");
-            })));
+        infoWindow: InfoWindow(title: "You", onTap: () {})));
     notifyListeners();
   }
 
@@ -154,8 +172,6 @@ class MapBloc with ChangeNotifier, NodeServer {
         language: "en",
         components: [ws.Component(ws.Component.country, "et")],
       );
-      print("\n\n\n\n");
-      print(_prediction);
       if (_prediction != null) {
         ws.GoogleMapsPlaces _places = new ws.GoogleMapsPlaces(
             apiKey: Config.googleMapApiKey); //Same API_KEY as above

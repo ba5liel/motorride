@@ -9,7 +9,7 @@ class Register extends StatelessWidget {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final PhoneNumber _number = PhoneNumber(isoCode: 'ET');
   final TextEditingController phoneController = TextEditingController();
-  final List<String> phoneNumber= [];
+  final List<String> phoneNumber = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,10 +60,12 @@ class Register extends StatelessWidget {
                       padding: EdgeInsets.all(0),
                       color: MyTheme.secondaryColor,
                       onPressed: () {
-                        if (formKey.currentState.validate())
+                        if (formKey.currentState.validate()) {
                           print("number.phoneNumber");
-                          print(phoneNumber[phoneNumber.length-1]);
-                          auth.onPhoneSignIn(phoneNumber[phoneNumber.length-1], context);
+                          print(phoneNumber[phoneNumber.length - 1]);
+                          auth.onPhoneSignIn(
+                              phoneNumber[phoneNumber.length - 1], context);
+                        }
                       },
                       child: Container(
                         padding: EdgeInsets.all(20.0),
