@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
-import 'package:motorride/pages/profile.dart';
+import 'package:motorride/pages/helppage.dart';
+import 'package:motorride/pages/inprogresspage.dart';
+import 'package:motorride/pages/profilepage.dart';
 import 'package:motorride/widgets/googlemap.dart';
 
 class HomePage extends StatelessWidget {
@@ -15,7 +17,6 @@ class HomePage extends StatelessWidget {
       body: Stack(
         children: <Widget>[
           MyGoogleMap(),
-         
         ],
       ),
       drawer: Drawer(
@@ -38,7 +39,8 @@ class HomePage extends StatelessWidget {
                     ),
                     Text(currentUser.name ?? "",
                         style: TextStyle(color: Colors.white60)),
-                    Text(currentUser.phone ?? "")
+                    Text(currentUser.phone ?? "",
+                        style: TextStyle(color: Colors.white60))
                   ],
                 )),
                 decoration: BoxDecoration(
@@ -62,7 +64,12 @@ class HomePage extends StatelessWidget {
                         "see your bookings",
                         style: TextStyle(color: Colors.white30),
                       ),
-                      onTap: () {},
+                      onTap: () {
+                         Navigator.of(context).push(
+                            MaterialPageRoute(builder: (BuildContext context) {
+                          return InProgressPage();
+                        }));
+                      },
                       trailing: Icon(
                         Icons.priority_high,
                         color: MyTheme.primaryColor,
@@ -80,7 +87,7 @@ class HomePage extends StatelessWidget {
                       onTap: () {
                         Navigator.of(context).push(
                             MaterialPageRoute(builder: (BuildContext context) {
-                          return MyProfile();
+                          return ProfilePage();
                         }));
                       },
                       trailing: Icon(
@@ -100,7 +107,7 @@ class HomePage extends StatelessWidget {
                       onTap: () {
                         Navigator.of(context).push(
                             MaterialPageRoute(builder: (BuildContext context) {
-                          return HomePage();
+                          return HelpPage();
                         }));
                       },
                       trailing: Icon(

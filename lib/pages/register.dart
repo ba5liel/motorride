@@ -109,28 +109,30 @@ class Register extends StatelessWidget {
                                 spreadRadius: 0,
                                 color: Colors.black38)
                           ]),
-                      child: FlatButton(
-                        padding: EdgeInsets.all(10),
-                        onPressed: () async {
-                          auth.onGoogleSignIn(context);
-                        },
-                        child: Row(
-                          children: <Widget>[
-                            Image.asset(
-                              "assets/images/google.png",
-                              width: 40,
-                              height: 40,
-                            ),
-                            SizedBox(
-                              width: 50,
-                            ),
-                            Text(
-                              "Sign up with Google",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: Builder(builder: (context) {
+                        return FlatButton(
+                          padding: EdgeInsets.all(10),
+                          onPressed: () async {
+                            auth.onGoogleSignIn(context);
+                          },
+                          child: Row(
+                            children: <Widget>[
+                              Image.asset(
+                                "assets/images/google.png",
+                                width: 40,
+                                height: 40,
+                              ),
+                              SizedBox(
+                                width: 50,
+                              ),
+                              Text(
+                                "Sign up with Google",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                     )
                   ],
                 ),

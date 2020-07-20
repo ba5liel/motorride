@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:motorride/pages/home.dart';
+import 'package:motorride/util/alerts.dart';
 import 'package:motorride/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motorride/modals/user.dart';
@@ -16,20 +17,27 @@ class Authentication {
     scopes: [
       'https://www.googleapis.com/auth/user.phonenumbers.read',
       'https://www.googleapis.com/auth/userinfo.email',
-      "https://www.googleapis.com/auth/userinfo.profile"
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/admin.directory.user.readonly",
+      "https://www.googleapis.com/auth/admin.directory.user"
     ],
   );
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _codeController = new TextEditingController();
   FirebaseUser _user;
 
-  void signOut() {}
+  Future<void> signOut() async{
+    await getPref();
+    _pref.remove("user");
+    _pref.remove("online");
+    _pref.remove("loggedIn");
+  }
   Future<bool> isLoggedIn() async {
     await getPref();
     return _pref.getBool("loggedIn") ?? false;
   }
 
-  void _setUser(User user) async {
+  Future<void> _setUser(User user) async {
     await Firestore.instance
         .collection('users')
         .document(user.userID)
@@ -150,22 +158,42 @@ class Authentication {
     }
   }
 
+  void updateUser(String id, String firstname, String lastname, String phone,
+      String photo, BuildContext context) {
+    Firestore.instance
+        .collection('users')
+        .document(id)
+        .setData(currentUser.toMap());
+    currentUser = new User(
+        photo: photo, userID: id, name: "$firstname $lastname", phone: phone);
+    _setUser(currentUser);
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (BuildContext context) {
+      return HomePage();
+    }));
+  }
+
   Future<SharedPreferences> getPref() async {
     if (_pref == null) _pref = await SharedPreferences.getInstance();
     return _pref;
   }
 
   void _createUser(FirebaseUser user, BuildContext context) {
+    if (user == null) {
+      Alerts.showSnackBar(context, "Sign in failed");
+      return;
+    }
     currentUser = new User(
         userID: user.uid,
         name: user.displayName,
         phone: user.phoneNumber,
         rating: 5.0);
-    _setUser(currentUser);
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (BuildContext context) {
-      return HomePage();
-    }));
+    _setUser(currentUser).catchError((e) {
+      print("Error: $e");
+    }).then((value) => Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+          return HomePage();
+        })));
   }
 
   Future<FirebaseUser> _handleSignIn() async {
