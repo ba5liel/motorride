@@ -13,11 +13,11 @@ class NodeServer {
 
   List rooms;
   List prerooms = [];
-  void sendLocation(String userId, LatLng cord) async {
+  Future<void> sendLocation(String userId, LatLng cord) async {
     print(cord);
     print("send location called\n\n\n\n\n");
     try {
-      http.Response res = await http.post("${Config.baseUrl}/getroom", body: {
+      http.Response res = await http.post("${Config.baseUrl}/getallrooms", body: {
         "lat": cord.latitude.toString(),
         "lng": cord.longitude.toString()
       });

@@ -10,12 +10,11 @@ import 'package:motorride/util/alerts.dart';
 import 'package:motorride/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motorride/modals/user.dart';
-
+//616468
 class Authentication {
   SharedPreferences _pref;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
-      'https://www.googleapis.com/auth/user.phonenumbers.read',
       'https://www.googleapis.com/auth/userinfo.email',
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/admin.directory.user.readonly",
@@ -64,8 +63,8 @@ class Authentication {
     showDialog(context: context, child: LoadingWidget());
     _auth.verifyPhoneNumber(
         phoneNumber: phone,
-        timeout: Duration(seconds: 60),
-        verificationCompleted: (AuthCredential credential) async {
+        timeout: Duration(minutes: 5),
+        verificationCompleted:  (AuthCredential credential) async {
           AuthResult result = await _auth.signInWithCredential(credential);
           _user = result.user;
           if (_user != null) {
@@ -85,7 +84,7 @@ class Authentication {
                 title: Text("Sms Verification failed"),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[Text("please try again!")],
+                  children: <Widget>[Text("please try again! ${exception.message}")],
                 ),
                 actions: <Widget>[
                   FlatButton(
@@ -121,7 +120,8 @@ class Authentication {
                       textColor: Colors.white,
                       color: Colors.blue,
                       onPressed: () async {
-                        final code = _codeController.text.trim();
+                        try {
+                          final code = _codeController.text.trim();
                         AuthCredential credential =
                             PhoneAuthProvider.getCredential(
                                 verificationId: verificationId, smsCode: code);
@@ -136,6 +136,10 @@ class Authentication {
                         } else {
                           print("Error");
                         }
+                        } catch (e) {
+                           print("Error $e");
+                        }
+                        
                       },
                     )
                   ],

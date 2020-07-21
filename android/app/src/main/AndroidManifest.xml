@@ -10,7 +10,7 @@
         android:label="motorride"
         android:icon="@mipmap/launcher_icon">
         <meta-data android:name="com.google.android.geo.API_KEY"
-               android:value="AIzaSyCQcLxm1sU5ZszNeYwawT19PzWMqEu--hs"/>
+               android:value="AIzaSyAGbfIielNV8K0E1-mh7bkjTmkMOKNf_fs"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

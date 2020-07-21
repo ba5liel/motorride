@@ -32,19 +32,20 @@ class MapBloc with ChangeNotifier, NodeServer {
   List<Marker> get markers => _markers;
   LatLng get currentLocation => _currentLocation;
   String address = "unnamed road";
-
+  double tilt;
   GoogleMapController mapContoller;
   set setMapContoller(GoogleMapController c) {
     print('++++++++++GoogleMapController======== settted');
     mapContoller = c;
   }
-  
+
   void init() async {
     print("MapBloc Initalized");
     preCenter = LatLng(9.0336617, 38.7512801);
     await changeLocationSetting(accuracy: LocationAccuracy.high, interval: 0);
     _currentLocation = await getCurrentLocation();
     //listen for my location change
+    await sendLocation(currentUser.userID, _currentLocation);
     _location.onLocationChanged.listen((event) async {
       _currentLocation = LatLng(event.latitude, event.longitude);
       if (_currentLocation != null &&
@@ -56,10 +57,11 @@ class MapBloc with ChangeNotifier, NodeServer {
                   preCenter.latitude,
                   preCenter.longitude) >
               0.05) {
-        sendLocation(currentUser.userID, _currentLocation);
+        await sendLocation(currentUser.userID, _currentLocation);
         _markers.removeWhere(
             (element) => element.markerId.value == currentUser.userID);
         _markers.add(new Marker(
+            zIndex: 999,
             icon: BitmapDescriptor.fromBytes(
                 await getBytesFromAsset("assets/images/user_place.png", 80)),
             position: _currentLocation,
@@ -68,7 +70,6 @@ class MapBloc with ChangeNotifier, NodeServer {
       }
     });
 
-    
     getRoomController().stream.listen((rooms) async {
       print("======== Room Stream returned a value =========== $rooms");
       if (rooms != null && rooms.length > 0) {
@@ -76,10 +77,24 @@ class MapBloc with ChangeNotifier, NodeServer {
             .collection('drivers')
             .where("room", whereIn: rooms)
             .snapshots()
-            .listen((docs) {
-          docs.documents.forEach((doc) {
+            .listen((docs) async {
+          _markers.clear();
+          _markers.add(new Marker(
+              zIndex: 9999,
+              icon: BitmapDescriptor.fromBytes(
+                  await getBytesFromAsset("assets/images/user_place.png", 80)),
+              position: _currentLocation,
+              markerId: MarkerId(currentUser.name ?? currentUser.phone),
+              infoWindow: InfoWindow(title: "You", onTap: () {})));
+          docs.documents.forEach((doc) async {
+            print("==========online========+${doc.data["online"]}");
+            print(
+                "==========online = false========+${doc.data["online"] == false}");
+            if (doc.data["online"] == false) return;
             print(
                 "======== Documents Stream returned a value =========== ${doc.data}");
+            print("==========online========+${doc.data["online"] == false}");
+
             int index = _drivers
                 .indexWhere((element) => element.userID == doc.data["userID"]);
             LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
@@ -87,33 +102,29 @@ class MapBloc with ChangeNotifier, NodeServer {
             index == -1
                 ? _drivers.add(new Driver.fromMap(doc.data)..setCords(newCords))
                 : _drivers[index].setCords(newCords);
-          });
-        });
+            BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
+                await getBytesFromAsset("assets/images/motor_icon.png", 50));
 
-        BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
-            await getBytesFromAsset("assets/images/motor_icon.png", 80));
-        _markers.clear();
-        _markers.addAll(_drivers
-            .map((Driver e) => new Marker(
-                position: e.cords,
-                icon: iconm,
-                markerId: MarkerId(e.userID),
-                infoWindow: InfoWindow(
-                    title: e.name,
-                    snippet: "${e.phone} ${e.targa}",
-                    onTap: () {})))
-            .toList());
-        _markers.add(new Marker(
-            icon: BitmapDescriptor.fromBytes(
-                await getBytesFromAsset("assets/images/user_place.png", 80)),
-            position: _currentLocation,
-            markerId: MarkerId(currentUser.name ?? currentUser.phone),
-            infoWindow: InfoWindow(title: "You", onTap: () {})));
-        notifyListeners();
+            _markers.addAll(_drivers
+                .map((Driver e) => new Marker(
+                    zIndex: 9999,
+                    position: e.cords,
+                    icon: iconm,
+                    markerId: MarkerId(e.userID),
+                    infoWindow: InfoWindow(
+                        title: e.name,
+                        snippet: "${e.phone} ${e.targa}",
+                        onTap: () {})))
+                .toList());
+          });
+          print(_markers);
+          notifyListeners();
+        });
       }
     });
     _currentLocation = await getCurrentLocation();
     _markers.add(new Marker(
+        zIndex: 999,
         icon: BitmapDescriptor.fromBytes(
             await getBytesFromAsset("assets/images/user_place.png", 80)),
         position: _currentLocation,
@@ -126,10 +137,12 @@ class MapBloc with ChangeNotifier, NodeServer {
       {LocationAccuracy accuracy, int interval}) async {
     await _location.changeSettings(accuracy: accuracy, interval: interval);
   }
-   Future<void> goToCurrentLocation() async {
+
+  Future<void> goToCurrentLocation() async {
+    tilt = tilt == 90 ? 0 : 90;
     mapContoller.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(target: _currentLocation, zoom: 17.0, tilt: 90),
+        CameraPosition(target: _currentLocation, zoom: 17.0, tilt: tilt),
       ),
     );
     print("goToCurrentLocation called notifyListeners()");
@@ -190,6 +203,7 @@ class MapBloc with ChangeNotifier, NodeServer {
             detail.result.geometry.location.lng);
 
         _markers.add((new Marker(
+            zIndex: 9999,
             position: dest,
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueGreen),

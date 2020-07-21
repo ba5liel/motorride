@@ -81,11 +81,14 @@ class SettingSection extends StatelessWidget {
               onTap: () async {
                 Alerts.showPromptDialog(context, "You're about to sign out",
                     "Are you sure you want to continue", () async {
-                  await new Authentication().signOut();
+                  Authentication auth = new Authentication();
+                  await auth.signOut();
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (BuildContext context) => new Register()));
+                          builder: (BuildContext context) => new Register(
+                                auth: auth,
+                              )));
                 });
                 //new Authentication()..signOut();
               },

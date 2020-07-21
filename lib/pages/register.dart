@@ -18,123 +18,126 @@ class Register extends StatelessWidget {
           key: formKey,
           child: Center(
             child: SingleChildScrollView(
-              child: Container(
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(
-                      height: 100,
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(bottom: 20.0),
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                                blurRadius: 5,
-                                spreadRadius: 0,
-                                color: Colors.black38)
-                          ]),
-                      child: InternationalPhoneNumberInput(
-                        inputDecoration: InputDecoration(
-                            fillColor: Colors.white, border: InputBorder.none),
-                        onInputChanged: (PhoneNumber number) {
-                          phoneNumber.add(number.phoneNumber);
-                        },
-                        ignoreBlank: false,
-                        autoValidate: false,
-                        initialValue: _number,
-                        selectorTextStyle: TextStyle(color: Colors.black),
-                        textFieldController: phoneController,
-                        inputBorder: InputBorder.none,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(10, 18, 10, 10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 100,
                       ),
-                    ),
-                    FlatButton(
-                      padding: EdgeInsets.all(0),
-                      color: MyTheme.secondaryColor,
-                      onPressed: () {
-                        if (formKey.currentState.validate()) {
-                          auth.onPhoneSignIn(
-                              phoneNumber[phoneNumber.length - 1], context);
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(20.0),
+                      Container(
+                        margin: EdgeInsets.only(bottom: 20.0),
+                        padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(4.0)),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
                             boxShadow: <BoxShadow>[
                               BoxShadow(
                                   blurRadius: 5,
                                   spreadRadius: 0,
                                   color: Colors.black38)
                             ]),
-                        width: double.infinity,
-                        child: Text(
-                          'SignUp',
-                          style: TextStyle(color: Colors.white),
-                          textAlign: TextAlign.center,
+                        child: InternationalPhoneNumberInput(
+                          inputDecoration: InputDecoration(
+                              fillColor: Colors.white, border: InputBorder.none),
+                          onInputChanged: (PhoneNumber number) {
+                            phoneNumber.add(number.phoneNumber);
+                          },
+                          ignoreBlank: false,
+                          autoValidate: false,
+                          initialValue: _number,
+                          selectorTextStyle: TextStyle(color: Colors.black),
+                          textFieldController: phoneController,
+                          inputBorder: InputBorder.none,
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 50,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        Container(
-                            height: 2, width: 100.0, color: Colors.black38),
-                        Text(
-                          "OR",
-                          style: TextStyle(color: Colors.white70, fontSize: 18),
-                        ),
-                        Container(
-                            height: 2, width: 100.0, color: Colors.black38)
-                      ],
-                    ),
-                    SizedBox(
-                      height: 50,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Color(0xff4285f4),
-                          borderRadius: BorderRadius.all(Radius.circular(4.0)),
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                                blurRadius: 5,
-                                spreadRadius: 0,
-                                color: Colors.black38)
-                          ]),
-                      child: Builder(builder: (context) {
-                        return FlatButton(
-                          padding: EdgeInsets.all(10),
-                          onPressed: () async {
-                            auth.onGoogleSignIn(context);
-                          },
-                          child: Row(
-                            children: <Widget>[
-                              Image.asset(
-                                "assets/images/google.png",
-                                width: 40,
-                                height: 40,
-                              ),
-                              SizedBox(
-                                width: 50,
-                              ),
-                              Text(
-                                "Sign up with Google",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
+                      FlatButton(
+                        padding: EdgeInsets.all(0),
+                        color: MyTheme.secondaryColor,
+                        onPressed: () {
+                          if (formKey.currentState.validate()) {
+                            auth.onPhoneSignIn(
+                                phoneNumber[phoneNumber.length - 1], context);
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(20.0),
+                          decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4.0)),
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                    blurRadius: 5,
+                                    spreadRadius: 0,
+                                    color: Colors.black38)
+                              ]),
+                          width: double.infinity,
+                          child: Text(
+                            'SignUp',
+                            style: TextStyle(color: Colors.white),
+                            textAlign: TextAlign.center,
                           ),
-                        );
-                      }),
-                    )
-                  ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 50,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          Container(
+                              height: 2, width: 100.0, color: Colors.black38),
+                          Text(
+                            "OR",
+                            style: TextStyle(color: Colors.white70, fontSize: 18),
+                          ),
+                          Container(
+                              height: 2, width: 100.0, color: Colors.black38)
+                        ],
+                      ),
+                      SizedBox(
+                        height: 50,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            color: Color(0xff4285f4),
+                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                            boxShadow: <BoxShadow>[
+                              BoxShadow(
+                                  blurRadius: 5,
+                                  spreadRadius: 0,
+                                  color: Colors.black38)
+                            ]),
+                        child: Builder(builder: (context) {
+                          return FlatButton(
+                            padding: EdgeInsets.all(10),
+                            onPressed: () async {
+                              auth.onGoogleSignIn(context);
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Image.asset(
+                                  "assets/images/google.png",
+                                  width: 40,
+                                  height: 40,
+                                ),
+                                SizedBox(
+                                  width: 50,
+                                ),
+                                Text(
+                                  "Sign up with Google",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
