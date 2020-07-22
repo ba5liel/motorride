@@ -13,18 +13,26 @@ import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/user.dart';
 import 'package:motorride/util/formulas.dart';
 import 'package:google_maps_webservice/places.dart' as ws;
+import 'package:google_maps_webservice/geocoding.dart' as gc;
 import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:geolocator/geolocator.dart' as gc;
 
 LatLng preCenter = LatLng(9.0336617, 38.7512801);
+enum SetMarketType { SHOW_PICKUP, SHOW_DESTINATION, SHOW_NOTHING }
 
 class MapBloc with ChangeNotifier, NodeServer {
   MapBloc() {
     init();
     notifyListeners();
   }
+  gc.Geolocator _geolocator = new gc.Geolocator();
   Location _location = new Location();
   List<Driver> _drivers = [];
   LatLng _currentLocation;
+  LatLng _destination;
+  String destinationAddress = "destination";
+  LatLng _pickup;
+  String pickupAddress = "your Location";
   List<Marker> _markers = List();
   bool _permission = false;
   ws.Prediction _prediction;
@@ -34,6 +42,12 @@ class MapBloc with ChangeNotifier, NodeServer {
   String address = "unnamed road";
   double tilt;
   GoogleMapController mapContoller;
+  SetMarketType showSetMarker = SetMarketType.SHOW_NOTHING;
+  LatLng _cameraCenter;
+
+  ws.GoogleMapsPlaces _places =
+      new ws.GoogleMapsPlaces(apiKey: Config.googleMapApiKey);
+
   set setMapContoller(GoogleMapController c) {
     print('++++++++++GoogleMapController======== settted');
     mapContoller = c;
@@ -58,6 +72,10 @@ class MapBloc with ChangeNotifier, NodeServer {
                   preCenter.longitude) >
               0.05) {
         await sendLocation(currentUser.userID, _currentLocation);
+        address = (await _geolocator.placemarkFromCoordinates(
+                _currentLocation.latitude, _currentLocation.longitude))[0]
+            .name;
+        print(address);
         _markers.removeWhere(
             (element) => element.markerId.value == currentUser.userID);
         _markers.add(new Marker(
@@ -130,6 +148,11 @@ class MapBloc with ChangeNotifier, NodeServer {
         position: _currentLocation,
         markerId: MarkerId(currentUser.name ?? currentUser.phone),
         infoWindow: InfoWindow(title: "You", onTap: () {})));
+
+    address = (await _geolocator.placemarkFromCoordinates(
+            _currentLocation.latitude, _currentLocation.longitude))[0]
+        .name;
+    print(address);
     notifyListeners();
   }
 
@@ -178,9 +201,77 @@ class MapBloc with ChangeNotifier, NodeServer {
     return null;
   }
 
-  void openAutoComplete(BuildContext context) async {
+  void openAutoCompleteFrom(BuildContext context) async {
     try {
       _prediction = await PlacesAutocomplete.show(
+        logo: Column(
+          children: <Widget>[
+            SizedBox(
+              height: 10,
+            ),
+            InkWell(
+              onTap: () {
+                _pickup = _currentLocation;
+                setPickUp();
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                        decoration: BoxDecoration(
+                            color: Color(0xffe8f0fe),
+                            borderRadius: BorderRadius.circular(25)),
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.my_location,
+                          color: Color(0xff1a73e8),
+                        )),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text('Your Location'),
+                        Divider(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                choosePickUpLocationOnMap();
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                        decoration: BoxDecoration(
+                            color: Color(0xffe8eaed),
+                            borderRadius: BorderRadius.circular(25)),
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.map,
+                          color: Color(0xff3c4043),
+                        )),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'Choose on Map',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
         onError: (e) {
           print("Error-e\n\n\n");
           print(e.hasNoResults);
@@ -193,33 +284,168 @@ class MapBloc with ChangeNotifier, NodeServer {
         components: [ws.Component(ws.Component.country, "et")],
       );
       if (_prediction != null) {
-        ws.GoogleMapsPlaces _places = new ws.GoogleMapsPlaces(
-            apiKey: Config.googleMapApiKey); //Same API_KEY as above
+        //Same API_KEY as above
         ws.PlacesDetailsResponse detail =
             await _places.getDetailsByPlaceId(_prediction.placeId);
 
-        address = _prediction.description;
-        LatLng dest = new LatLng(detail.result.geometry.location.lat,
+        pickupAddress = _prediction.description;
+        _pickup = new LatLng(detail.result.geometry.location.lat,
             detail.result.geometry.location.lng);
-
-        _markers.add((new Marker(
-            zIndex: 9999,
-            position: dest,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueGreen),
-            markerId: MarkerId(
-                "${currentUser.name}dest" ?? "${currentUser.phone}dest"),
-            infoWindow: InfoWindow(
-                title: "Destination",
-                onTap: () {
-                  print("request driver");
-                }))));
+        await setPickUp();
+        notifyListeners();
       }
     } catch (e, t) {
       print(e);
       print(t);
       throw e;
     }
+  }
+
+  void openAutoCompleteTo(BuildContext context) async {
+    try {
+      _prediction = await PlacesAutocomplete.show(
+        logo: Column(
+          children: <Widget>[
+            SizedBox(
+              height: 10,
+            ),
+            InkWell(
+              onTap: () {
+                chooseDestinationLocationOnMap();
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15.0, vertical: 5),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                        decoration: BoxDecoration(
+                            color: Color(0xffe8eaed),
+                            borderRadius: BorderRadius.circular(25)),
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.map,
+                          color: Color(0xff3c4043),
+                        )),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Text(
+                      'Choose on Map',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        onError: (e) {
+          print("Error-e\n\n\n");
+          print(e.hasNoResults);
+          print(e.errorMessage);
+        },
+        context: context,
+        apiKey: Config.googleMapApiKey,
+        mode: Mode.overlay, // Mode.overlay
+        language: "en",
+        components: [ws.Component(ws.Component.country, "et")],
+      );
+      if (_prediction != null) {
+        ws.PlacesDetailsResponse detail =
+            await _places.getDetailsByPlaceId(_prediction.placeId);
+
+        destinationAddress = _prediction.description;
+        _destination = new LatLng(detail.result.geometry.location.lat,
+            detail.result.geometry.location.lng);
+        setDestination();
+      }
+    } catch (e, t) {
+      print(e);
+      print(t);
+      throw e;
+    }
+  }
+
+  Future<void> setPickUp() async {
+    print("setPick up Called");
+    _markers.removeWhere((element) => element.markerId.value == "pickup");
+
+    _markers = [..._markers]..add(new Marker(
+        zIndex: 9999,
+        position: _pickup,
+        icon: BitmapDescriptor.fromBytes(
+            await getBytesFromAsset("assets/images/pickup.png", 100)),
+        markerId: MarkerId("pickup"),
+        infoWindow: InfoWindow(
+            title: "Pick Up",
+            snippet: "Your Pick Up location",
+            onTap: () {
+              print("request driver");
+            })));
+    mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
+        boundsFromLatLngList([
+          _currentLocation,
+          _pickup,
+          if (_destination != null) _destination
+        ]),
+        100));
+
+    notifyListeners();
+  }
+
+  Future<void> setDestination() async {
+    _markers.removeWhere((element) => element.markerId.value == "destination");
+    _markers = [..._markers]..add(new Marker(
+        zIndex: 9999,
+        position: _destination,
+        icon: BitmapDescriptor.fromBytes(await getBytesFromAsset(
+            "assets/images/user_place_destination4.png", 80)),
+        markerId: MarkerId("destination"),
+        infoWindow: InfoWindow(
+            title: "Destination",
+            onTap: () {
+              print("request driver");
+            })));
+    mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
+        boundsFromLatLngList([
+          _currentLocation,
+          _destination,
+          if (_pickup != null) _destination
+        ]),
+        100));
+  }
+
+  void setCameraCenter(LatLng pos) {
+    _cameraCenter = pos;
+  }
+
+  void setChooseOnMap() async {
+    print("setChooseOnMap");
+    if (showSetMarker == SetMarketType.SHOW_PICKUP) {
+      print("pick up choosen");
+      _pickup = _cameraCenter;
+      showSetMarker = SetMarketType.SHOW_NOTHING;
+      await setPickUp();
+    }
+    if (showSetMarker == SetMarketType.SHOW_DESTINATION) {
+      _destination = _cameraCenter;
+      await setDestination();
+    }
+  }
+
+  void choosePickUpLocationOnMap() {
+    showSetMarker = SetMarketType.SHOW_PICKUP;
+    notifyListeners();
+  }
+
+  void chooseDestinationLocationOnMap() {
+    showSetMarker = SetMarketType.SHOW_PICKUP;
+    notifyListeners();
+  }
+
+  void closeChooseOnMap() {
+    showSetMarker = SetMarketType.SHOW_NOTHING;
+    notifyListeners();
   }
 
   static Future<Uint8List> getBytesFromAsset(String path, int width) async {
@@ -230,5 +456,22 @@ class MapBloc with ChangeNotifier, NodeServer {
     return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
         .buffer
         .asUint8List();
+  }
+
+  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
+    assert(list.isNotEmpty);
+    double x0, x1, y0, y1;
+    for (LatLng latLng in list) {
+      if (x0 == null) {
+        x0 = x1 = latLng.latitude;
+        y0 = y1 = latLng.longitude;
+      } else {
+        if (latLng.latitude > x1) x1 = latLng.latitude;
+        if (latLng.latitude < x0) x0 = latLng.latitude;
+        if (latLng.longitude > y1) y1 = latLng.longitude;
+        if (latLng.longitude < y0) y0 = latLng.longitude;
+      }
+    }
+    return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
   }
 }

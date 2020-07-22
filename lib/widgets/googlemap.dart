@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/bloc/map_bloc.dart';
 import 'package:motorride/constants/theme.dart';
+import 'package:motorride/widgets/fogeffect.dart';
+import 'package:motorride/widgets/topnavbar.dart';
 import 'package:provider/provider.dart';
 
 class MyGoogleMap extends StatelessWidget {
@@ -24,8 +26,21 @@ class AllStacks extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("Notify Listeerns called rebuilding !!\n\n\n");
-    LatLng center = context.watch<MapBloc>().currentLocation;
-    print(Set<Marker>.of(context.watch<MapBloc>().markers));
+    return Builder(builder: (context) {
+      return MapBackground();
+    });
+  }
+}
+
+class MapBackground extends StatelessWidget {
+  const MapBackground({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    print("build again");
+    LatLng center = context.select((MapBloc m) => m.currentLocation);
     preCenter = center;
     return Stack(children: <Widget>[
       center == null
@@ -33,6 +48,9 @@ class AllStacks extends StatelessWidget {
           : GoogleMap(
               //myLocationEnabled: true,
               mapType: MapType.normal,
+              onCameraMove: (CameraPosition position) {
+                context.read<MapBloc>().setCameraCenter(position.target);
+              },
               initialCameraPosition: CameraPosition(
                 target: center,
                 zoom: 17.0,
@@ -40,189 +58,78 @@ class AllStacks extends StatelessWidget {
               onMapCreated: (GoogleMapController controller) {
                 context.read<MapBloc>().setMapContoller = controller;
               },
-              markers: Set<Marker>.of(context.watch<MapBloc>().markers),
+              markers: Set<Marker>.of(context.select((MapBloc m) => m.markers)),
             ),
-      Positioned(
-        top: 0,
-        left: 0,
-        right: 0,
-        child: Container(
-          height: MediaQuery.of(context).size.height * .25,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                  color: Colors.white,
-                  blurRadius: 50,
-                  offset: Offset(0, 5),
-                  spreadRadius: 50)
-            ],
-            borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(50),
-                bottomRight: Radius.circular(50)),
-          ),
-        ),
-      ),
-      Container(
-        margin: EdgeInsets.only(top: 40),
-        child: Center(
-          child: Column(
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 12),
-                padding: EdgeInsets.all(6.0),
-                decoration: MyTheme.myPlateDecoration,
+      FogEffect(),
+      TopNavBar(),
+      BottomNavBar(),
+      Builder(builder: (context) {
+        SetMarketType setMarketType =
+            context.select((MapBloc m) => m.showSetMarker);
+        return AnimatedOpacity(
+          duration: Duration(milliseconds: 800),
+          curve: Curves.easeIn,
+          opacity: setMarketType == SetMarketType.SHOW_NOTHING ? 0 : 1,
+          child: Align(
+            alignment: Alignment.center,
+            child: Container(
+              child: Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                        ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => context
-                                .read<MapBloc>()
-                                .openAutoComplete(context),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 0, 10.0, 0),
-                                  child: Container(
-                                    width: 25,
-                                    height: 25,
-                                    decoration: BoxDecoration(
-                                        color: Color(0xffe8f0fe),
-                                        borderRadius:
-                                            BorderRadius.circular(25)),
-                                    child: Center(
-                                      child: Container(
-                                          width: 15,
-                                          height: 15,
-                                          decoration: BoxDecoration(
-                                              color: Color(0xffffffff),
-                                              borderRadius:
-                                                  BorderRadius.circular(25)),
-                                          child: Center(
-                                              child: Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                                color: Color(0xff1a73e8),
-                                                borderRadius:
-                                                    BorderRadius.circular(25)),
-                                          ))),
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  "From, Your Location",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontStyle: FontStyle.italic,
-                                      color: Color(0xff4a4a4a)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    Image.asset(
+                      setMarketType == SetMarketType.SHOW_PICKUP
+                          ? 'assets/images/pickup.png'
+                          : 'assets/images/user_place_destination4.png',
+                      scale: 2,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.menu, color: Colors.white),
-                          onPressed: () => null,
-                        ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => context
-                                .read<MapBloc>()
-                                .openAutoComplete(context),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(0, 0, 10.0, 0),
-                                  child: Icon(
-                                    Icons.location_on,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                                Text(
-                                  "To,  destination",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontStyle: FontStyle.italic,
-                                      color: Color(0xff4a4a4a)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    Container(
+                        color: MyTheme.primaryColor,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        child: Text(
+                          "Set Pick up location here",
+                          style: TextStyle(color: Colors.white),
+                        ))
                   ],
                 ),
               ),
-              Container(
-                width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.all(8.0),
-                margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Icon(
-                      Icons.edit_location,
-                      color: Colors.red,
-                    ),
-                    Text(
-                      context.watch<MapBloc>().address,
-                      style: TextStyle(
-                          color: MyTheme.secondaryColor,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              )
-            ],
+            ),
           ),
-        ),
-      ),
-      Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            padding: EdgeInsets.all(10.0),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      width: 60,
-                      height: 60,
+        );
+      })
+    ]);
+  }
+}
+
+class BottomNavBar extends StatelessWidget {
+  const BottomNavBar({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  AnimatedOpacity(
+                    duration: Duration(milliseconds: 800),
+                    curve: Curves.easeIn,
+                    opacity: context.select((MapBloc m) => m.showSetMarker) ==
+                            SetMarketType.SHOW_NOTHING
+                        ? 0
+                        : 1,
+                    child: Container(
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          color: Colors.red),
-                      child: Center(
-                        child: Text(
-                          "SOS",
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: MyTheme.primaryColor,
                         borderRadius: BorderRadius.all(Radius.circular(100)),
                         boxShadow: [
                           BoxShadow(
@@ -243,45 +150,192 @@ class AllStacks extends StatelessWidget {
                         children: <Widget>[
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: MyTheme.primaryColor,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(100)),
                               boxShadow: [
                                 BoxShadow(
                                     blurRadius: 0,
                                     spreadRadius: 1,
-                                    color: Color(0x00).withOpacity(.5),
+                                    color: Color(0xffffffff).withOpacity(.5),
                                     offset: Offset(0,
                                         0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
                                 BoxShadow(
                                     blurRadius: 0,
                                     spreadRadius: 1,
-                                    color: Color(0x00).withOpacity(.05),
+                                    color: Color(0xffffffff).withOpacity(.05),
                                     offset: Offset(0,
                                         0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
                               ],
                             ),
                             child: IconButton(
                               onPressed: () async {
-                                await context
-                                    .read<MapBloc>()
-                                    .goToCurrentLocation();
+                                context.read<MapBloc>().setChooseOnMap();
                               },
                               icon: Icon(
-                                Icons.my_location,
-                                color: Colors.red,
+                                Icons.location_on,
+                                color: Colors.white,
                                 size: 22,
                               ),
                             ),
                           )
                         ],
                       ),
-                    )
-                  ],
-                ),
-              ],
-            ),
-          ))
-    ]);
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  AnimatedOpacity(
+                    duration: Duration(milliseconds: 800),
+                    curve: Curves.easeIn,
+                    opacity: context.select((MapBloc m) => m.showSetMarker) ==
+                            SetMarketType.SHOW_NOTHING
+                        ? 0
+                        : 1,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.all(Radius.circular(100)),
+                        boxShadow: [
+                          BoxShadow(
+                              blurRadius: 2,
+                              color: Color(0x00).withOpacity(.16),
+                              offset: Offset(0,
+                                  0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                          BoxShadow(
+                              blurRadius: 3,
+                              color: Color(0x00).withOpacity(.23),
+                              offset: Offset(0,
+                                  1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                        ],
+                      ),
+                      padding: EdgeInsets.all(4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(100)),
+                              boxShadow: [
+                                BoxShadow(
+                                    blurRadius: 0,
+                                    spreadRadius: 1,
+                                    color: Color(0xffffffff).withOpacity(.5),
+                                    offset: Offset(0,
+                                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                                BoxShadow(
+                                    blurRadius: 0,
+                                    spreadRadius: 1,
+                                    color: Color(0xffffffff).withOpacity(.05),
+                                    offset: Offset(0,
+                                        0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                              ],
+                            ),
+                            child: IconButton(
+                              onPressed: () async {
+                                context.read<MapBloc>().closeChooseOnMap();
+                              },
+                              icon: Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(100),
+                        color: Colors.red),
+                    child: Center(
+                      child: Text(
+                        "SOS",
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(100)),
+                      boxShadow: [
+                        BoxShadow(
+                            blurRadius: 2,
+                            color: Color(0x00).withOpacity(.16),
+                            offset: Offset(0,
+                                0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                        BoxShadow(
+                            blurRadius: 3,
+                            color: Color(0x00).withOpacity(.23),
+                            offset: Offset(0,
+                                1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                      ],
+                    ),
+                    padding: EdgeInsets.all(4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(100)),
+                            boxShadow: [
+                              BoxShadow(
+                                  blurRadius: 0,
+                                  spreadRadius: 1,
+                                  color: Color(0x00).withOpacity(.5),
+                                  offset: Offset(0,
+                                      0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                              BoxShadow(
+                                  blurRadius: 0,
+                                  spreadRadius: 1,
+                                  color: Color(0x00).withOpacity(.05),
+                                  offset: Offset(0,
+                                      0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                            ],
+                          ),
+                          child: IconButton(
+                            onPressed: () async {
+                              await context
+                                  .read<MapBloc>()
+                                  .goToCurrentLocation();
+                            },
+                            icon: Icon(
+                              Icons.my_location,
+                              color: Colors.red,
+                              size: 22,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ));
   }
 }
