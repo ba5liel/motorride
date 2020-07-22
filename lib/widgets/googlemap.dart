@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/bloc/map_bloc.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/widgets/fogeffect.dart';
+import 'package:motorride/widgets/setmarketcenter.dart';
 import 'package:motorride/widgets/topnavbar.dart';
 import 'package:provider/provider.dart';
 
@@ -63,44 +64,12 @@ class MapBackground extends StatelessWidget {
       FogEffect(),
       TopNavBar(),
       BottomNavBar(),
-      Builder(builder: (context) {
-        SetMarketType setMarketType =
-            context.select((MapBloc m) => m.showSetMarker);
-        return AnimatedOpacity(
-          duration: Duration(milliseconds: 800),
-          curve: Curves.easeIn,
-          opacity: setMarketType == SetMarketType.SHOW_NOTHING ? 0 : 1,
-          child: Align(
-            alignment: Alignment.center,
-            child: Container(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Image.asset(
-                      setMarketType == SetMarketType.SHOW_PICKUP
-                          ? 'assets/images/pickup.png'
-                          : 'assets/images/user_place_destination4.png',
-                      scale: 2,
-                    ),
-                    Container(
-                        color: MyTheme.primaryColor,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        child: Text(
-                          "Set Pick up location here",
-                          style: TextStyle(color: Colors.white),
-                        ))
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      })
+      SetMarketCenter()
     ]);
   }
 }
+
+
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({
@@ -117,225 +86,261 @@ class BottomNavBar extends StatelessWidget {
           padding: EdgeInsets.all(10.0),
           child: Column(
             children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  AnimatedOpacity(
-                    duration: Duration(milliseconds: 800),
-                    curve: Curves.easeIn,
-                    opacity: context.select((MapBloc m) => m.showSetMarker) ==
-                            SetMarketType.SHOW_NOTHING
-                        ? 0
-                        : 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: MyTheme.primaryColor,
-                        borderRadius: BorderRadius.all(Radius.circular(100)),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 2,
-                              color: Color(0x00).withOpacity(.16),
-                              offset: Offset(0,
-                                  0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                          BoxShadow(
-                              blurRadius: 3,
-                              color: Color(0x00).withOpacity(.23),
-                              offset: Offset(0,
-                                  1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                        ],
-                      ),
-                      padding: EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Container(
-                            decoration: BoxDecoration(
-                              color: MyTheme.primaryColor,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(100)),
-                              boxShadow: [
-                                BoxShadow(
-                                    blurRadius: 0,
-                                    spreadRadius: 1,
-                                    color: Color(0xffffffff).withOpacity(.5),
-                                    offset: Offset(0,
-                                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                                BoxShadow(
-                                    blurRadius: 0,
-                                    spreadRadius: 1,
-                                    color: Color(0xffffffff).withOpacity(.05),
-                                    offset: Offset(0,
-                                        0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                              ],
-                            ),
-                            child: IconButton(
-                              onPressed: () async {
-                                context.read<MapBloc>().setChooseOnMap();
-                              },
-                              icon: Icon(
-                                Icons.location_on,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
+              SetChoosenOnMapBtn(),
               SizedBox(
                 height: 10,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  AnimatedOpacity(
-                    duration: Duration(milliseconds: 800),
-                    curve: Curves.easeIn,
-                    opacity: context.select((MapBloc m) => m.showSetMarker) ==
-                            SetMarketType.SHOW_NOTHING
-                        ? 0
-                        : 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.all(Radius.circular(100)),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 2,
-                              color: Color(0x00).withOpacity(.16),
-                              offset: Offset(0,
-                                  0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                          BoxShadow(
-                              blurRadius: 3,
-                              color: Color(0x00).withOpacity(.23),
-                              offset: Offset(0,
-                                  1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                        ],
-                      ),
-                      padding: EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(100)),
-                              boxShadow: [
-                                BoxShadow(
-                                    blurRadius: 0,
-                                    spreadRadius: 1,
-                                    color: Color(0xffffffff).withOpacity(.5),
-                                    offset: Offset(0,
-                                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                                BoxShadow(
-                                    blurRadius: 0,
-                                    spreadRadius: 1,
-                                    color: Color(0xffffffff).withOpacity(.05),
-                                    offset: Offset(0,
-                                        0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                              ],
-                            ),
-                            child: IconButton(
-                              onPressed: () async {
-                                context.read<MapBloc>().closeChooseOnMap();
-                              },
-                              icon: Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
+              CloseChoosenOnMapBtn(),
               SizedBox(
                 height: 10,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(100),
-                        color: Colors.red),
-                    child: Center(
-                      child: Text(
-                        "SOS",
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(100)),
-                      boxShadow: [
-                        BoxShadow(
-                            blurRadius: 2,
-                            color: Color(0x00).withOpacity(.16),
-                            offset: Offset(0,
-                                0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                        BoxShadow(
-                            blurRadius: 3,
-                            color: Color(0x00).withOpacity(.23),
-                            offset: Offset(0,
-                                1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                      ],
-                    ),
-                    padding: EdgeInsets.all(4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(100)),
-                            boxShadow: [
-                              BoxShadow(
-                                  blurRadius: 0,
-                                  spreadRadius: 1,
-                                  color: Color(0x00).withOpacity(.5),
-                                  offset: Offset(0,
-                                      0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                              BoxShadow(
-                                  blurRadius: 0,
-                                  spreadRadius: 1,
-                                  color: Color(0x00).withOpacity(.05),
-                                  offset: Offset(0,
-                                      0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                            ],
-                          ),
-                          child: IconButton(
-                            onPressed: () async {
-                              await context
-                                  .read<MapBloc>()
-                                  .goToCurrentLocation();
-                            },
-                            icon: Icon(
-                              Icons.my_location,
-                              color: Colors.red,
-                              size: 22,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
+              SosAndMyLocationBtn(),
             ],
           ),
         ));
+  }
+}
+
+class SosAndMyLocationBtn extends StatelessWidget {
+  const SosAndMyLocationBtn({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100),
+              color: Colors.red),
+          child: Center(
+            child: Text(
+              "SOS",
+              style: TextStyle(fontSize: 18, color: Colors.white),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(Radius.circular(100)),
+            boxShadow: [
+              BoxShadow(
+                  blurRadius: 2,
+                  color: Color(0x00).withOpacity(.16),
+                  offset: Offset(0,
+                      0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+              BoxShadow(
+                  blurRadius: 3,
+                  color: Color(0x00).withOpacity(.23),
+                  offset: Offset(0,
+                      1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+            ],
+          ),
+          padding: EdgeInsets.all(4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(100)),
+                  boxShadow: [
+                    BoxShadow(
+                        blurRadius: 0,
+                        spreadRadius: 1,
+                        color: Color(0x00).withOpacity(.5),
+                        offset: Offset(0,
+                            0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                    BoxShadow(
+                        blurRadius: 0,
+                        spreadRadius: 1,
+                        color: Color(0x00).withOpacity(.05),
+                        offset: Offset(0,
+                            0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () async {
+                    await context
+                        .read<MapBloc>()
+                        .goToCurrentLocation();
+                  },
+                  icon: Icon(
+                    Icons.my_location,
+                    color: Colors.red,
+                    size: 22,
+                  ),
+                ),
+              )
+            ],
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class CloseChoosenOnMapBtn extends StatelessWidget {
+  const CloseChoosenOnMapBtn({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        AnimatedOpacity(
+          duration: Duration(milliseconds: 800),
+          curve: Curves.easeIn,
+          opacity: context.select((MapBloc m) => m.showSetMarker) ==
+                  SetMarketType.SHOW_NOTHING
+              ? 0
+              : 1,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.all(Radius.circular(100)),
+              boxShadow: [
+                BoxShadow(
+                    blurRadius: 2,
+                    color: Color(0x00).withOpacity(.16),
+                    offset: Offset(0,
+                        0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                BoxShadow(
+                    blurRadius: 3,
+                    color: Color(0x00).withOpacity(.23),
+                    offset: Offset(0,
+                        1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+              ],
+            ),
+            padding: EdgeInsets.all(4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius:
+                        BorderRadius.all(Radius.circular(100)),
+                    boxShadow: [
+                      BoxShadow(
+                          blurRadius: 0,
+                          spreadRadius: 1,
+                          color: Color(0xffffffff).withOpacity(.5),
+                          offset: Offset(0,
+                              0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                      BoxShadow(
+                          blurRadius: 0,
+                          spreadRadius: 1,
+                          color: Color(0xffffffff).withOpacity(.05),
+                          offset: Offset(0,
+                              0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                    ],
+                  ),
+                  child: IconButton(
+                    onPressed: () async {
+                      context.read<MapBloc>().closeChooseOnMap();
+                    },
+                    icon: Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class SetChoosenOnMapBtn extends StatelessWidget {
+  const SetChoosenOnMapBtn({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Builder(builder: (context) {
+          SetMarketType type =
+              context.select((MapBloc m) => m.showSetMarker);
+          return AnimatedOpacity(
+            duration: Duration(milliseconds: 800),
+            curve: Curves.easeIn,
+            opacity: type == SetMarketType.SHOW_NOTHING ? 0 : 1,
+            child: Container(
+              decoration: BoxDecoration(
+                color: MyTheme.primaryColor,
+                borderRadius: BorderRadius.all(Radius.circular(100)),
+                boxShadow: [
+                  BoxShadow(
+                      blurRadius: 2,
+                      color: Color(0x00).withOpacity(.16),
+                      offset: Offset(0,
+                          0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                  BoxShadow(
+                      blurRadius: 3,
+                      color: Color(0x00).withOpacity(.23),
+                      offset: Offset(0,
+                          1)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                ],
+              ),
+              padding: EdgeInsets.all(4.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Container(
+                    decoration: BoxDecoration(
+                      color: MyTheme.primaryColor,
+                      borderRadius:
+                          BorderRadius.all(Radius.circular(100)),
+                      boxShadow: [
+                        BoxShadow(
+                            blurRadius: 0,
+                            spreadRadius: 1,
+                            color: Color(0xffffffff).withOpacity(.5),
+                            offset: Offset(0,
+                                0)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                        BoxShadow(
+                            blurRadius: 0,
+                            spreadRadius: 1,
+                            color: Color(0xffffffff).withOpacity(.05),
+                            offset: Offset(0,
+                                0)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: () async {
+                        context.read<MapBloc>().setChooseOnMap();
+                      },
+                      icon: Icon(
+                        type == SetMarketType.SHOW_PICKUP
+                            ? Icons.location_on
+                            : Icons.flag,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        })
+      ],
+    );
   }
 }

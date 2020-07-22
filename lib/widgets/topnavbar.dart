@@ -166,16 +166,21 @@ class TopNavBar extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Container(
-                          decoration: BoxDecoration(
-                              color: Color(0xffe8eaed),
-                              borderRadius: BorderRadius.circular(25)),
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(
-                            Icons.map,
-                            size: 14,
-                            color: Color(0xff3c4043),
-                          )),
+                      InkWell(
+                        onTap: () => context
+                            .read<MapBloc>()
+                            .chooseDestinationLocationOnMap(),
+                        child: Container(
+                            decoration: BoxDecoration(
+                                color: Color(0xffe8eaed),
+                                borderRadius: BorderRadius.circular(25)),
+                            padding: EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.map,
+                              size: 14,
+                              color: Color(0xff3c4043),
+                            )),
+                      ),
                       SizedBox(
                         width: 10,
                       )

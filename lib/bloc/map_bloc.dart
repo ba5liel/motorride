@@ -78,13 +78,7 @@ class MapBloc with ChangeNotifier, NodeServer {
         print(address);
         _markers.removeWhere(
             (element) => element.markerId.value == currentUser.userID);
-        _markers.add(new Marker(
-            zIndex: 999,
-            icon: BitmapDescriptor.fromBytes(
-                await getBytesFromAsset("assets/images/user_place.png", 80)),
-            position: _currentLocation,
-            markerId: MarkerId(currentUser.name ?? currentUser.phone),
-            infoWindow: InfoWindow(title: "You", onTap: () {})));
+        await _addYouMarker();
       }
     });
 
@@ -96,23 +90,10 @@ class MapBloc with ChangeNotifier, NodeServer {
             .where("room", whereIn: rooms)
             .snapshots()
             .listen((docs) async {
-          _markers.clear();
-          _markers.add(new Marker(
-              zIndex: 9999,
-              icon: BitmapDescriptor.fromBytes(
-                  await getBytesFromAsset("assets/images/user_place.png", 80)),
-              position: _currentLocation,
-              markerId: MarkerId(currentUser.name ?? currentUser.phone),
-              infoWindow: InfoWindow(title: "You", onTap: () {})));
+          print("CHange Detected in DATABase\n");
+          _markers = [];
           docs.documents.forEach((doc) async {
-            print("==========online========+${doc.data["online"]}");
-            print(
-                "==========online = false========+${doc.data["online"] == false}");
             if (doc.data["online"] == false) return;
-            print(
-                "======== Documents Stream returned a value =========== ${doc.data}");
-            print("==========online========+${doc.data["online"] == false}");
-
             int index = _drivers
                 .indexWhere((element) => element.userID == doc.data["userID"]);
             LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
@@ -120,35 +101,27 @@ class MapBloc with ChangeNotifier, NodeServer {
             index == -1
                 ? _drivers.add(new Driver.fromMap(doc.data)..setCords(newCords))
                 : _drivers[index].setCords(newCords);
-            BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
-                await getBytesFromAsset("assets/images/motor_icon.png", 50));
-
-            _markers.addAll(_drivers
-                .map((Driver e) => new Marker(
-                    zIndex: 9999,
-                    position: e.cords,
-                    icon: iconm,
-                    markerId: MarkerId(e.userID),
-                    infoWindow: InfoWindow(
-                        title: e.name,
-                        snippet: "${e.phone} ${e.targa}",
-                        onTap: () {})))
-                .toList());
           });
-          print(_markers);
+          BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
+              await getBytesFromAsset("assets/images/motor_icon.png", 50));
+          await _addYouMarker();
+          _markers = [..._markers]..addAll(_drivers
+              .map((Driver e) => new Marker(
+                  zIndex: 9999,
+                  position: e.cords,
+                  icon: iconm,
+                  markerId: MarkerId(e.userID),
+                  infoWindow: InfoWindow(
+                      title: e.name,
+                      snippet: "${e.phone} ${e.targa}",
+                      onTap: () {})))
+              .toList());
           notifyListeners();
         });
       }
     });
     _currentLocation = await getCurrentLocation();
-    _markers.add(new Marker(
-        zIndex: 999,
-        icon: BitmapDescriptor.fromBytes(
-            await getBytesFromAsset("assets/images/user_place.png", 80)),
-        position: _currentLocation,
-        markerId: MarkerId(currentUser.name ?? currentUser.phone),
-        infoWindow: InfoWindow(title: "You", onTap: () {})));
-
+    await _addYouMarker();
     address = (await _geolocator.placemarkFromCoordinates(
             _currentLocation.latitude, _currentLocation.longitude))[0]
         .name;
@@ -211,6 +184,7 @@ class MapBloc with ChangeNotifier, NodeServer {
             ),
             InkWell(
               onTap: () {
+                Navigator.pop(context);
                 _pickup = _currentLocation;
                 setPickUp();
               },
@@ -244,6 +218,7 @@ class MapBloc with ChangeNotifier, NodeServer {
             ),
             InkWell(
               onTap: () {
+                Navigator.pop(context);
                 choosePickUpLocationOnMap();
               },
               child: Padding(
@@ -297,7 +272,6 @@ class MapBloc with ChangeNotifier, NodeServer {
     } catch (e, t) {
       print(e);
       print(t);
-      throw e;
     }
   }
 
@@ -389,7 +363,9 @@ class MapBloc with ChangeNotifier, NodeServer {
           if (_destination != null) _destination
         ]),
         100));
-
+    pickupAddress = (await _geolocator.placemarkFromCoordinates(
+            _currentLocation.latitude, _currentLocation.longitude))[0]
+        .name;
     notifyListeners();
   }
 
@@ -399,7 +375,7 @@ class MapBloc with ChangeNotifier, NodeServer {
         zIndex: 9999,
         position: _destination,
         icon: BitmapDescriptor.fromBytes(await getBytesFromAsset(
-            "assets/images/user_place_destination4.png", 80)),
+            "assets/images/user_place_destination4.png", 100)),
         markerId: MarkerId("destination"),
         infoWindow: InfoWindow(
             title: "Destination",
@@ -413,6 +389,10 @@ class MapBloc with ChangeNotifier, NodeServer {
           if (_pickup != null) _destination
         ]),
         100));
+    destinationAddress = (await _geolocator.placemarkFromCoordinates(
+            _currentLocation.latitude, _currentLocation.longitude))[0]
+        .name;
+    notifyListeners();
   }
 
   void setCameraCenter(LatLng pos) {
@@ -428,7 +408,9 @@ class MapBloc with ChangeNotifier, NodeServer {
       await setPickUp();
     }
     if (showSetMarker == SetMarketType.SHOW_DESTINATION) {
+      print("Destination choosen");
       _destination = _cameraCenter;
+      showSetMarker = SetMarketType.SHOW_NOTHING;
       await setDestination();
     }
   }
@@ -439,7 +421,7 @@ class MapBloc with ChangeNotifier, NodeServer {
   }
 
   void chooseDestinationLocationOnMap() {
-    showSetMarker = SetMarketType.SHOW_PICKUP;
+    showSetMarker = SetMarketType.SHOW_DESTINATION;
     notifyListeners();
   }
 
@@ -473,5 +455,17 @@ class MapBloc with ChangeNotifier, NodeServer {
       }
     }
     return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
+  }
+
+  Future<Marker> _addYouMarker() async {
+    Marker user = new Marker(
+        zIndex: 999,
+        icon: BitmapDescriptor.fromBytes(
+            await getBytesFromAsset("assets/images/user_place.png", 80)),
+        position: _currentLocation,
+        markerId: MarkerId(currentUser.name ?? currentUser.phone),
+        infoWindow: InfoWindow(title: "You", onTap: () {}));
+    _markers.add(user);
+    return user;
   }
 }
