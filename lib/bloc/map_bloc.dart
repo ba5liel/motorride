@@ -2,32 +2,35 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:motorride/bloc/server_bloc.dart';
+import 'package:motorride/bloc/trip_bloc.dart';
 import 'package:motorride/config/configs.dart';
 import 'package:motorride/modals/driver.dart';
+import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/util/alerts.dart';
 import 'package:motorride/util/formulas.dart';
-import 'package:google_maps_webservice/places.dart' as ws;
+import 'package:google_maps_webservice/places.dart' as wsp;
 import 'package:google_maps_webservice/geocoding.dart' as gc;
 import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geolocator/geolocator.dart' as gc;
+import 'package:motorride/widgets/confirmationBottomSheet.dart';
+import 'package:motorride/widgets/driverinfobootmsheet.dart';
 
 LatLng preCenter = LatLng(9.0336617, 38.7512801);
 enum SetMarketType { SHOW_PICKUP, SHOW_DESTINATION, SHOW_NOTHING }
 
-class MapBloc with ChangeNotifier, NodeServer {
+class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   MapBloc() {
     init();
     notifyListeners();
   }
   gc.Geolocator _geolocator = new gc.Geolocator();
   Location _location = new Location();
-  List<Driver> _drivers = [];
   LatLng _currentLocation;
   LatLng _destination;
   String destinationAddress = "destination";
@@ -35,8 +38,8 @@ class MapBloc with ChangeNotifier, NodeServer {
   String pickupAddress = "your Location";
   List<Marker> _markers = List();
   bool _permission = false;
-  ws.Prediction _prediction;
-  List<Driver> get drivers => _drivers;
+  wsp.Prediction _prediction;
+  List<Driver> get drivers => drivers;
   List<Marker> get markers => _markers;
   LatLng get currentLocation => _currentLocation;
   String address = "unnamed road";
@@ -45,8 +48,8 @@ class MapBloc with ChangeNotifier, NodeServer {
   SetMarketType showSetMarker = SetMarketType.SHOW_NOTHING;
   LatLng _cameraCenter;
 
-  ws.GoogleMapsPlaces _places =
-      new ws.GoogleMapsPlaces(apiKey: Config.googleMapApiKey);
+  wsp.GoogleMapsPlaces _places =
+      new wsp.GoogleMapsPlaces(apiKey: Config.googleMapApiKey);
 
   set setMapContoller(GoogleMapController c) {
     print('++++++++++GoogleMapController======== settted');
@@ -94,18 +97,18 @@ class MapBloc with ChangeNotifier, NodeServer {
           _markers = [];
           docs.documents.forEach((doc) async {
             if (doc.data["online"] == false) return;
-            int index = _drivers
+            int index = drivers
                 .indexWhere((element) => element.userID == doc.data["userID"]);
             LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
 
             index == -1
-                ? _drivers.add(new Driver.fromMap(doc.data)..setCords(newCords))
-                : _drivers[index].setCords(newCords);
+                ? drivers.add(new Driver.fromMap(doc.data)..setCords(newCords))
+                : drivers[index].setCords(newCords);
           });
           BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
               await getBytesFromAsset("assets/images/motor_icon.png", 50));
           await _addYouMarker();
-          _markers = [..._markers]..addAll(_drivers
+          _markers = [..._markers]..addAll(drivers
               .map((Driver e) => new Marker(
                   zIndex: 9999,
                   position: e.cords,
@@ -256,11 +259,11 @@ class MapBloc with ChangeNotifier, NodeServer {
         apiKey: Config.googleMapApiKey,
         mode: Mode.overlay, // Mode.overlay
         language: "en",
-        components: [ws.Component(ws.Component.country, "et")],
+        components: [wsp.Component(wsp.Component.country, "et")],
       );
       if (_prediction != null) {
         //Same API_KEY as above
-        ws.PlacesDetailsResponse detail =
+        wsp.PlacesDetailsResponse detail =
             await _places.getDetailsByPlaceId(_prediction.placeId);
 
         pickupAddress = _prediction.description;
@@ -322,16 +325,16 @@ class MapBloc with ChangeNotifier, NodeServer {
         apiKey: Config.googleMapApiKey,
         mode: Mode.overlay, // Mode.overlay
         language: "en",
-        components: [ws.Component(ws.Component.country, "et")],
+        components: [wsp.Component(wsp.Component.country, "et")],
       );
       if (_prediction != null) {
-        ws.PlacesDetailsResponse detail =
+        wsp.PlacesDetailsResponse detail =
             await _places.getDetailsByPlaceId(_prediction.placeId);
-
+        print(_prediction.description);
         destinationAddress = _prediction.description;
         _destination = new LatLng(detail.result.geometry.location.lat,
             detail.result.geometry.location.lng);
-        setDestination();
+        setDestination(context);
       }
     } catch (e, t) {
       print(e);
@@ -363,13 +366,22 @@ class MapBloc with ChangeNotifier, NodeServer {
           if (_destination != null) _destination
         ]),
         100));
-    pickupAddress = (await _geolocator.placemarkFromCoordinates(
-            _currentLocation.latitude, _currentLocation.longitude))[0]
-        .name;
+
     notifyListeners();
   }
 
-  Future<void> setDestination() async {
+  Future<void> requestRide(BuildContext context) async {
+    await request(_pickup ?? _currentLocation, pickupAddress ?? address, () {
+      Navigator.pop(context);
+      showBottomSheet(
+          context: context, builder: (context) => DriverInfoBottomSheet());
+    }, () {
+      Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
+          "Sorry We can not provide our service at this time please try again later");
+    });
+  }
+
+  Future<void> setDestination(BuildContext context) async {
     _markers.removeWhere((element) => element.markerId.value == "destination");
     _markers = [..._markers]..add(new Marker(
         zIndex: 9999,
@@ -383,35 +395,57 @@ class MapBloc with ChangeNotifier, NodeServer {
               print("request driver");
             })));
     mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
-        boundsFromLatLngList([
-          _currentLocation,
-          _destination,
-          if (_pickup != null) _destination
-        ]),
+        boundsFromLatLngList(
+            [_currentLocation, _destination, if (_pickup != null) _pickup]),
         100));
-    destinationAddress = (await _geolocator.placemarkFromCoordinates(
-            _currentLocation.latitude, _currentLocation.longitude))[0]
-        .name;
     notifyListeners();
+    showConformationSheet(context);
+  }
+
+  void showConformationSheet(BuildContext context) async {
+    if (drivers.length == 0)
+      return Alerts.showAlertDialog(
+          context,
+          "Service Unavailabe in you're region",
+          "Sorry We can not provide our service at this time please try again later");
+    sortDriverByShortestDistance(_pickup ?? _currentLocation);
+    Map<String, dynamic> eTA =
+        await calculateETA(_pickup ?? _currentLocation, _destination);
+    trip = new Trip(
+      tripDistance: eTA['distance']["value"],
+      eTA: eTA["duration"]["value"],
+        arravialETA: eTA["duration"]["text"],
+        pickupAddress: pickupAddress ?? address,
+        destinationAddress: destinationAddress,
+        nubmersOfDrivers: drivers.length,
+        amount: (eTA['distance']["value"] * Config.pricePerKilo / 1000));
+    showBottomSheet(
+        context: context, builder: (context) => ConfirmationBottomSheet(trip: trip,));
   }
 
   void setCameraCenter(LatLng pos) {
     _cameraCenter = pos;
   }
 
-  void setChooseOnMap() async {
+  void setChooseOnMap(BuildContext context) async {
     print("setChooseOnMap");
     if (showSetMarker == SetMarketType.SHOW_PICKUP) {
       print("pick up choosen");
       _pickup = _cameraCenter;
       showSetMarker = SetMarketType.SHOW_NOTHING;
+      pickupAddress = (await _geolocator.placemarkFromCoordinates(
+              _pickup.latitude, _pickup.longitude))[0]
+          .name;
       await setPickUp();
     }
     if (showSetMarker == SetMarketType.SHOW_DESTINATION) {
       print("Destination choosen");
       _destination = _cameraCenter;
       showSetMarker = SetMarketType.SHOW_NOTHING;
-      await setDestination();
+      destinationAddress = (await _geolocator.placemarkFromCoordinates(
+              _destination.latitude, _destination.longitude))[0]
+          .name;
+      await setDestination(context);
     }
   }
 
