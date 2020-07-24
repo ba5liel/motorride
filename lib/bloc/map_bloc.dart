@@ -33,13 +33,13 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   Location _location = new Location();
   LatLng _currentLocation;
   LatLng _destination;
-  String destinationAddress = "destination";
+  LatLng get destination => _destination;
+  String destinationAddress;
   LatLng _pickup;
   String pickupAddress = "your Location";
   List<Marker> _markers = List();
   bool _permission = false;
   wsp.Prediction _prediction;
-  List<Driver> get drivers => drivers;
   List<Marker> get markers => _markers;
   LatLng get currentLocation => _currentLocation;
   String address = "unnamed road";
@@ -412,15 +412,21 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     Map<String, dynamic> eTA =
         await calculateETA(_pickup ?? _currentLocation, _destination);
     trip = new Trip(
-      tripDistance: eTA['distance']["value"],
-      eTA: eTA["duration"]["value"],
+        tripDistance: eTA['distance']["value"] / 1,
+        tripDistanceText: eTA['distance']["text"],
+        eTA: eTA["duration"]["value"] / 1,
         arravialETA: eTA["duration"]["text"],
         pickupAddress: pickupAddress ?? address,
         destinationAddress: destinationAddress,
         nubmersOfDrivers: drivers.length,
         amount: (eTA['distance']["value"] * Config.pricePerKilo / 1000));
     showBottomSheet(
-        context: context, builder: (context) => ConfirmationBottomSheet(trip: trip,));
+        context: context,
+        builder: (context) => ConfirmationBottomSheet(
+            trip: trip,
+            requestRide: () {
+              requestRide(context);
+            }));
   }
 
   void setCameraCenter(LatLng pos) {

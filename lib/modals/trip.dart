@@ -10,6 +10,7 @@ class Trip {
   final int nubmersOfDrivers;
   final double amount;
   final double tripDistance;
+  final String tripDistanceText;
 
   Trip(
       {this.driver,
@@ -19,6 +20,7 @@ class Trip {
       @required this.destinationAddress,
       @required this.nubmersOfDrivers,
       @required this.tripDistance,
+      @required this.tripDistanceText,
       @required this.amount});
   factory Trip.fromMap(Map<String, dynamic> json) => new Trip(
         driver: Driver.fromMap(json["driver"]),
@@ -28,6 +30,7 @@ class Trip {
         destinationAddress: json["destinationAddress"],
         nubmersOfDrivers: json["numbersOfDrivers"],
         tripDistance: json["tripDistance"],
+        tripDistanceText: json["tripDistanceText"],
         amount: json["amount"],
       );
   Map<String, dynamic> toMap() => {
@@ -38,6 +41,7 @@ class Trip {
         "destinationAddress": destinationAddress,
         "nubmersOfDrivers": nubmersOfDrivers,
         "tripDistance": tripDistance,
+        "tripDistanceText": tripDistanceText,
         "amount": amount,
       };
   @override

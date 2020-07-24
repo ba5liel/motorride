@@ -141,7 +141,7 @@ class TopNavBar extends StatelessWidget {
                               ),
                               Expanded(
                                 child: Text(
-                                  "To,  ${context.watch<MapBloc>().destinationAddress}",
+                                  "To,  ${context.watch<MapBloc>().destinationAddress ?? "destination"}",
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                       fontSize: 16,

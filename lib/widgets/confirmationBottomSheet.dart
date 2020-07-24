@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:motorride/bloc/map_bloc.dart';
 import 'package:motorride/modals/trip.dart';
 import 'package:motorride/widgets/mybottomsheet.dart';
 import 'package:motorride/widgets/requestloadingbottomsheet.dart';
-import 'package:provider/provider.dart';
 
 class ConfirmationBottomSheet extends StatelessWidget {
-  ConfirmationBottomSheet({Key key, @required this.trip}) : super(key: key);
+  ConfirmationBottomSheet(
+      {Key key, @required this.trip, @required this.requestRide})
+      : super(key: key);
   final Trip trip;
+  final Function requestRide;
   @override
   Widget build(BuildContext context) {
     return MyBottomSheet(
       child: Stack(
         children: <Widget>[
-          StartTrip(trip: trip),
+          StartTrip(
+            trip: trip,
+            requestRide: requestRide,
+          ),
         ],
       ),
     );
@@ -21,9 +25,10 @@ class ConfirmationBottomSheet extends StatelessWidget {
 }
 
 class StartTrip extends StatelessWidget {
-  const StartTrip({Key key, @required this.trip}) : super(key: key);
+  const StartTrip({Key key, @required this.trip, @required this.requestRide})
+      : super(key: key);
   final Trip trip;
-
+  final Function requestRide;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -52,7 +57,7 @@ class StartTrip extends StatelessWidget {
                 trip.arravialETA,
                 style: TextStyle(color: Colors.green, fontSize: 22),
               ),
-              Text(" (9.6Km)",
+              Text(" (${trip.tripDistanceText})",
                   style: TextStyle(color: Colors.grey[600], fontSize: 22))
             ],
           ),
@@ -93,7 +98,9 @@ class StartTrip extends StatelessWidget {
                         size: 14,
                       ),
                       Text(
-                        trip.pickupAddress,
+                        trip.pickupAddress.length < 12
+                            ? trip.pickupAddress
+                            : trip.pickupAddress.substring(0, 12) + "...",
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w700),
                       ),
@@ -117,7 +124,9 @@ class StartTrip extends StatelessWidget {
                         size: 14,
                       ),
                       Text(
-                        trip.destinationAddress,
+                        trip.destinationAddress.length < 12
+                            ? trip.destinationAddress
+                            : trip.destinationAddress.substring(0, 12) + "...",
                         style: TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w700),
                       ),
@@ -139,7 +148,7 @@ class StartTrip extends StatelessWidget {
                         showBottomSheet(
                             context: context,
                             builder: (context) => RequestLoadingBottomSheet());
-                        context.read<MapBloc>().requestRide(context);
+                        requestRide();
                       },
                       child: Container(
                         decoration: BoxDecoration(

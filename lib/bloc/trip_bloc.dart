@@ -39,7 +39,7 @@ class TripBloc {
       });
     });
     requestResponse.listen((event) async {
-      if (event.data["accepted"] == null) return;
+      if (event.data == null || event.data["accepted"] == null) return;
       if (event.data["accepted"]) {
         requestResponse = null;
         timeout.cancel();

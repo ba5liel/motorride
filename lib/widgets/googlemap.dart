@@ -86,8 +86,8 @@ class BottomNavBar extends StatelessWidget {
               padding: EdgeInsets.all(10.0),
               child: Column(
                 children: <Widget>[
-                  ShowConformationBtn(),
-                  SetChoosenOnMapBtn(),
+                 if(context.select((MapBloc m) => m.destination) != null) ShowConformationBtn(),
+                  ChooseOnMap(),
                   SizedBox(
                     height: 10,
                   ),
@@ -101,6 +101,17 @@ class BottomNavBar extends StatelessWidget {
             ),
           ],
         ));
+  }
+}
+
+class ChooseOnMap extends StatelessWidget {
+  const ChooseOnMap({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SetChoosenOnMapBtn();
   }
 }
 

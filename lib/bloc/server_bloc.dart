@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -17,13 +16,14 @@ class NodeServer {
     print(cord);
     print("send location called\n\n\n\n\n");
     try {
-      FormData formData = new FormData.fromMap(
-          {"lat": cord.latitude.toString(), "lng": cord.longitude.toString()});
-
-      Response res =
-          await dio.post("${Config.baseUrl}/getallrooms", data: formData);
+      Response res = await dio.post("${Config.baseUrl}/getallrooms",
+          data: {
+            "lat": cord.latitude.toString(),
+            "lng": cord.longitude.toString()
+          },
+          options: Options(contentType: "application/x-www-form-urlencoded"));
       print(res.data);
-      Map<String, dynamic> room = json.decode(res.data);
+      Map<String, dynamic> room = res.data;
       rooms = room["rooms"];
       if (!unOrdDeepEq(rooms, prerooms)) roomController.add(rooms);
       prerooms = rooms;
@@ -41,14 +41,14 @@ class NodeServer {
   Future<Map<String, dynamic>> calculateETA(
       LatLng origin, LatLng destination) async {
     Response response = await dio.get(
-        "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${origin.latitude},${origin.longitude}&destinations=${destination.latitude},${destination.longitude}&key=${Config.googleMapApiKey}");
-    Map<String, dynamic> data = json.decode(response.data);
+        "https://maps.googleapis.com/maps/api/distancematrix/json?units=metric&origins=${origin.latitude},${origin.longitude}&destinations=${destination.latitude},${destination.longitude}&language=en&key=${Config.googleMapApiKey}");
+    Map<String, dynamic> data = response.data;
     print(data);
     if (data["status"] != "OK") {
       throw Error();
     }
-    List<Map<String, dynamic>> row = data["row"];
-    return  row[0]["elements"][0];
+    List<dynamic> row = data["rows"];
+    return row[0]["elements"][0];
   }
 
   Function unOrdDeepEq = const DeepCollectionEquality.unordered().equals;
