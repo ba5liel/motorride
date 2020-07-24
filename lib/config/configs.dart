@@ -4,5 +4,4 @@ class Config {
   static Duration requestRideTimeOut = Duration(minutes: 5);
   static double pricePerKilo = 10.0;
   static double findRaduis = 3000;
-  
 }

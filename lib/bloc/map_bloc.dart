@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,7 +104,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
                 : drivers[index].setCords(newCords);
           });
           BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
-              await getBytesFromAsset("assets/images/motor_icon.png", 50));
+              await MyFormulas.getBytesFromAsset(
+                  "assets/images/motor_icon.png", 50));
           await _addYouMarker();
           _markers = [..._markers]..addAll(drivers
               .map((Driver e) => new Marker(
@@ -138,6 +137,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   }
 
   Future<void> goToCurrentLocation() async {
+    if (_currentLocation == null) await getCurrentLocation();
     tilt = tilt == 90 ? 0 : 90;
     mapContoller.animateCamera(
       CameraUpdate.newCameraPosition(
@@ -350,8 +350,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     _markers = [..._markers]..add(new Marker(
         zIndex: 9999,
         position: _pickup,
-        icon: BitmapDescriptor.fromBytes(
-            await getBytesFromAsset("assets/images/pickup.png", 100)),
+        icon: BitmapDescriptor.fromBytes(await MyFormulas.getBytesFromAsset(
+            "assets/images/pickup.png", 100)),
         markerId: MarkerId("pickup"),
         infoWindow: InfoWindow(
             title: "Pick Up",
@@ -360,7 +360,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
               print("request driver");
             })));
     mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
-        boundsFromLatLngList([
+        MyFormulas.boundsFromLatLngList([
           _currentLocation,
           _pickup,
           if (_destination != null) _destination
@@ -370,8 +370,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     notifyListeners();
   }
 
-  Future<void> requestRide(BuildContext context) async {
-    await request(_pickup ?? _currentLocation, pickupAddress ?? address, () {
+  Future<void> requestRide(BuildContext context, Trip trip) async {
+    await request(trip, () {
       Navigator.pop(context);
       showBottomSheet(
           context: context, builder: (context) => DriverInfoBottomSheet());
@@ -386,7 +386,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     _markers = [..._markers]..add(new Marker(
         zIndex: 9999,
         position: _destination,
-        icon: BitmapDescriptor.fromBytes(await getBytesFromAsset(
+        icon: BitmapDescriptor.fromBytes(await MyFormulas.getBytesFromAsset(
             "assets/images/user_place_destination4.png", 100)),
         markerId: MarkerId("destination"),
         infoWindow: InfoWindow(
@@ -395,7 +395,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
               print("request driver");
             })));
     mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
-        boundsFromLatLngList(
+        MyFormulas.boundsFromLatLngList(
             [_currentLocation, _destination, if (_pickup != null) _pickup]),
         100));
     notifyListeners();
@@ -412,6 +412,9 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     Map<String, dynamic> eTA =
         await calculateETA(_pickup ?? _currentLocation, _destination);
     trip = new Trip(
+        pickup: _pickup ?? _currentLocation,
+        destination: _destination,
+        user: currentUser,
         tripDistance: eTA['distance']["value"] / 1,
         tripDistanceText: eTA['distance']["text"],
         eTA: eTA["duration"]["value"] / 1,
@@ -425,7 +428,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
         builder: (context) => ConfirmationBottomSheet(
             trip: trip,
             requestRide: () {
-              requestRide(context);
+              requestRide(context, trip);
             }));
   }
 
@@ -470,38 +473,11 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     notifyListeners();
   }
 
-  static Future<Uint8List> getBytesFromAsset(String path, int width) async {
-    ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
-        targetWidth: width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))
-        .buffer
-        .asUint8List();
-  }
-
-  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
-    assert(list.isNotEmpty);
-    double x0, x1, y0, y1;
-    for (LatLng latLng in list) {
-      if (x0 == null) {
-        x0 = x1 = latLng.latitude;
-        y0 = y1 = latLng.longitude;
-      } else {
-        if (latLng.latitude > x1) x1 = latLng.latitude;
-        if (latLng.latitude < x0) x0 = latLng.latitude;
-        if (latLng.longitude > y1) y1 = latLng.longitude;
-        if (latLng.longitude < y0) y0 = latLng.longitude;
-      }
-    }
-    return LatLngBounds(northeast: LatLng(x1, y1), southwest: LatLng(x0, y0));
-  }
-
   Future<Marker> _addYouMarker() async {
     Marker user = new Marker(
         zIndex: 999,
-        icon: BitmapDescriptor.fromBytes(
-            await getBytesFromAsset("assets/images/user_place.png", 80)),
+        icon: BitmapDescriptor.fromBytes(await MyFormulas.getBytesFromAsset(
+            "assets/images/user_place.png", 80)),
         position: _currentLocation,
         markerId: MarkerId(currentUser.name ?? currentUser.phone),
         infoWindow: InfoWindow(title: "You", onTap: () {}));

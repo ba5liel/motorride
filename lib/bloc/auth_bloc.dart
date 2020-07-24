@@ -10,6 +10,7 @@ import 'package:motorride/util/alerts.dart';
 import 'package:motorride/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motorride/modals/user.dart';
+
 //616468
 class Authentication {
   SharedPreferences _pref;
@@ -25,12 +26,13 @@ class Authentication {
   final TextEditingController _codeController = new TextEditingController();
   FirebaseUser _user;
 
-  Future<void> signOut() async{
+  Future<void> signOut() async {
     await getPref();
     _pref.remove("user");
     _pref.remove("online");
     _pref.remove("loggedIn");
   }
+
   Future<bool> isLoggedIn() async {
     await getPref();
     return _pref.getBool("loggedIn") ?? false;
@@ -63,8 +65,8 @@ class Authentication {
     showDialog(context: context, child: LoadingWidget());
     _auth.verifyPhoneNumber(
         phoneNumber: phone,
-        timeout: Duration(minutes: 5),
-        verificationCompleted:  (AuthCredential credential) async {
+        timeout: Duration(minutes: 2),
+        verificationCompleted: (AuthCredential credential) async {
           AuthResult result = await _auth.signInWithCredential(credential);
           _user = result.user;
           if (_user != null) {
@@ -84,7 +86,9 @@ class Authentication {
                 title: Text("Sms Verification failed"),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[Text("please try again! ${exception.message}")],
+                  children: <Widget>[
+                    Text("please try again! ${exception.message}")
+                  ],
                 ),
                 actions: <Widget>[
                   FlatButton(
@@ -122,24 +126,24 @@ class Authentication {
                       onPressed: () async {
                         try {
                           final code = _codeController.text.trim();
-                        AuthCredential credential =
-                            PhoneAuthProvider.getCredential(
-                                verificationId: verificationId, smsCode: code);
+                          AuthCredential credential =
+                              PhoneAuthProvider.getCredential(
+                                  verificationId: verificationId,
+                                  smsCode: code);
 
-                        AuthResult result =
-                            await _auth.signInWithCredential(credential);
+                          AuthResult result =
+                              await _auth.signInWithCredential(credential);
 
-                        _user = result.user;
+                          _user = result.user;
 
-                        if (_user != null) {
-                          _createUser(_user, context);
-                        } else {
-                          print("Error");
-                        }
+                          if (_user != null) {
+                            _createUser(_user, context);
+                          } else {
+                            print("Error");
+                          }
                         } catch (e) {
-                           print("Error $e");
+                          print("Error $e");
                         }
-                        
                       },
                     )
                   ],
@@ -152,7 +156,7 @@ class Authentication {
 
   Future<bool> onGoogleSignIn(BuildContext context) async {
     try {
-      FirebaseUser user = await _handleSignIn();
+      FirebaseUser user = await _handleSignIn(context);
       _createUser(user, context);
       return true;
     } catch (e, t) {
@@ -200,20 +204,24 @@ class Authentication {
         })));
   }
 
-  Future<FirebaseUser> _handleSignIn() async {
+  Future<FirebaseUser> _handleSignIn(context) async {
     FirebaseUser user;
 
-    bool isSignedIn = await _googleSignIn.isSignedIn();
-    if (isSignedIn) {
-      user = await _auth.currentUser();
-    } else {
-      final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+    try {
+      bool isSignedIn = await _googleSignIn.isSignedIn();
+      if (isSignedIn) {
+        user = await _auth.currentUser();
+      } else {
+        final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.getCredential(
-          accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
-      user = (await _auth.signInWithCredential(credential)).user;
+        final AuthCredential credential = GoogleAuthProvider.getCredential(
+            accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+        user = (await _auth.signInWithCredential(credential)).user;
+      }
+    } catch (e) {
+      Alerts.showSnackBar(context, "Sign in failed, Check Internet Connection");
     }
     return user;
   }

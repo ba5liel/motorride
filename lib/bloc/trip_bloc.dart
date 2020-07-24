@@ -5,57 +5,46 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/config/configs.dart';
 import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/trip.dart';
-import 'package:motorride/modals/user.dart';
 import 'package:motorride/util/formulas.dart';
 
 class TripBloc {
   Trip trip;
-  Stream<DocumentSnapshot> requestResponse;
-  Future<void> request(
-      LatLng pickup, String address, Function accepted, Function denied) async {
+  StreamSubscription<DocumentSnapshot> requestResponseStream;
+  Future<void> request(Trip trip, Function accepted, Function denied) async {
 //get the closest driver
 //write a request to the database
-
     int _index = 0;
     DocumentReference newRequest =
         Firestore.instance.collection("requests").document();
     String requestid = newRequest.documentID;
 
-    requestResponse = Firestore.instance
-        .collection("requests")
-        .document(requestid)
-        .snapshots();
     Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
       _index++;
       if (drivers.length == _index + 1) {
-        requestResponse = null;
+        requestResponseStream.cancel();
         return denied();
       }
-      await newRequest.setData({
-        "driverID": drivers[_index].userID,
-        "address": address,
-        ...currentUser.toMap(),
-        "location": pickup.toJson()
-      });
+      await newRequest
+          .setData({"driverID": drivers[_index].userID, "tip": trip.toMap()});
     });
-    requestResponse.listen((event) async {
+    requestResponseStream = Firestore.instance
+        .collection("requests")
+        .document(requestid)
+        .snapshots()
+        .listen((event) async {
       if (event.data == null || event.data["accepted"] == null) return;
       if (event.data["accepted"]) {
-        requestResponse = null;
+        requestResponseStream.cancel();
         timeout.cancel();
         accepted();
         return;
       }
       if (drivers.length == _index + 1) {
-        requestResponse = null;
+        requestResponseStream.cancel();
         return denied();
       }
-      await newRequest.setData({
-        "driverID": drivers[_index].userID,
-        "address": address,
-        ...currentUser.toMap(),
-        "location": pickup.toJson()
-      });
+      await newRequest
+          .setData({"driverID": drivers[_index].userID, "trip": trip.toMap()});
       _index++;
     });
   }
@@ -68,6 +57,9 @@ class TripBloc {
   }
 
   getroute() {}
-  call() {}
+  call() {
+    print(trip);
+  }
+
   text() {}
 }
