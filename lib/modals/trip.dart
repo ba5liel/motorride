@@ -45,7 +45,7 @@ class Trip {
         amount: json["amount"],
       );
   Map<String, dynamic> toMap() => {
-        "driver": driver.toMap(),
+        "driver": driver == null ? null : driver.toMap(),
         "user": user.toMap(),
         "arravialETA": arravialETA,
         "eTA": eTA,

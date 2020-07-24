@@ -35,6 +35,7 @@ class NodeServer {
         });
     } catch (e) {
       print(e);
+      sendLocation(userId, cord);
     }
   }
 

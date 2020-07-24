@@ -18,6 +18,7 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geolocator/geolocator.dart' as gc;
 import 'package:motorride/widgets/confirmationBottomSheet.dart';
 import 'package:motorride/widgets/driverinfobootmsheet.dart';
+import 'package:motorride/widgets/requestloadingbottomsheet.dart';
 
 LatLng preCenter = LatLng(9.0336617, 38.7512801);
 enum SetMarketType { SHOW_PICKUP, SHOW_DESTINATION, SHOW_NOTHING }
@@ -376,6 +377,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
       showBottomSheet(
           context: context, builder: (context) => DriverInfoBottomSheet());
     }, () {
+      Navigator.pop(context);
       Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
           "Sorry We can not provide our service at this time please try again later");
     });
@@ -408,28 +410,41 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
           context,
           "Service Unavailabe in you're region",
           "Sorry We can not provide our service at this time please try again later");
-    sortDriverByShortestDistance(_pickup ?? _currentLocation);
-    Map<String, dynamic> eTA =
-        await calculateETA(_pickup ?? _currentLocation, _destination);
-    trip = new Trip(
-        pickup: _pickup ?? _currentLocation,
-        destination: _destination,
-        user: currentUser,
-        tripDistance: eTA['distance']["value"] / 1,
-        tripDistanceText: eTA['distance']["text"],
-        eTA: eTA["duration"]["value"] / 1,
-        arravialETA: eTA["duration"]["text"],
-        pickupAddress: pickupAddress ?? address,
-        destinationAddress: destinationAddress,
-        nubmersOfDrivers: drivers.length,
-        amount: (eTA['distance']["value"] * Config.pricePerKilo / 1000));
     showBottomSheet(
         context: context,
-        builder: (context) => ConfirmationBottomSheet(
-            trip: trip,
-            requestRide: () {
-              requestRide(context, trip);
-            }));
+        builder: (context) => RequestLoadingBottomSheet(
+              msg: "Gathering Info",
+            ));
+    try {
+      sortDriverByShortestDistance(_pickup ?? _currentLocation);
+      Map<String, dynamic> eTA =
+          await calculateETA(_pickup ?? _currentLocation, _destination);
+      trip = new Trip(
+          pickup: _pickup ?? _currentLocation,
+          destination: _destination,
+          user: currentUser,
+          tripDistance: eTA['distance']["value"] / 1,
+          tripDistanceText: eTA['distance']["text"],
+          eTA: eTA["duration"]["value"] / 1,
+          arravialETA: eTA["duration"]["text"],
+          pickupAddress: pickupAddress ?? address,
+          destinationAddress: destinationAddress,
+          nubmersOfDrivers: drivers.length,
+          amount: (eTA['distance']["value"] * Config.pricePerKilo / 1000));
+      Navigator.pop(context);
+      showBottomSheet(
+          context: context,
+          builder: (context) => ConfirmationBottomSheet(
+              trip: trip,
+              requestRide: () {
+                requestRide(context, trip);
+              }));
+    } catch (e) {
+      print(e);
+      Navigator.pop(context);
+      Alerts.showAlertDialog(context, "Gathering Info Failed",
+          "This is due to network connection. Please try again");
+    }
   }
 
   void setCameraCenter(LatLng pos) {
@@ -438,23 +453,27 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
 
   void setChooseOnMap(BuildContext context) async {
     print("setChooseOnMap");
-    if (showSetMarker == SetMarketType.SHOW_PICKUP) {
-      print("pick up choosen");
-      _pickup = _cameraCenter;
-      showSetMarker = SetMarketType.SHOW_NOTHING;
-      pickupAddress = (await _geolocator.placemarkFromCoordinates(
-              _pickup.latitude, _pickup.longitude))[0]
-          .name;
-      await setPickUp();
-    }
-    if (showSetMarker == SetMarketType.SHOW_DESTINATION) {
-      print("Destination choosen");
-      _destination = _cameraCenter;
-      showSetMarker = SetMarketType.SHOW_NOTHING;
-      destinationAddress = (await _geolocator.placemarkFromCoordinates(
-              _destination.latitude, _destination.longitude))[0]
-          .name;
-      await setDestination(context);
+    try {
+      if (showSetMarker == SetMarketType.SHOW_PICKUP) {
+        print("pick up choosen");
+        _pickup = _cameraCenter;
+        showSetMarker = SetMarketType.SHOW_NOTHING;
+        pickupAddress = (await _geolocator.placemarkFromCoordinates(
+                _pickup.latitude, _pickup.longitude))[0]
+            .name;
+        await setPickUp();
+      }
+      if (showSetMarker == SetMarketType.SHOW_DESTINATION) {
+        print("Destination choosen");
+        _destination = _cameraCenter;
+        showSetMarker = SetMarketType.SHOW_NOTHING;
+        destinationAddress = (await _geolocator.placemarkFromCoordinates(
+                _destination.latitude, _destination.longitude))[0]
+            .name;
+        await setDestination(context);
+      }
+    } catch (e) {
+      setChooseOnMap(context);
     }
   }
 

@@ -4,9 +4,9 @@ import 'package:motorride/widgets/mybottomsheet.dart';
 
 class RequestLoadingBottomSheet extends StatelessWidget {
   const RequestLoadingBottomSheet({
-    Key key,
+    Key key, @required this.msg
   }) : super(key: key);
-
+  final String msg;
   @override
   Widget build(BuildContext context) {
     return MyBottomSheet(
@@ -31,7 +31,7 @@ class RequestLoadingBottomSheet extends StatelessWidget {
                           shape: BoxShape.circle, color: MyTheme.primaryColor),
                       child: Center(
                           child: Text(
-                        "Requesting Driver",
+                        msg,
                         style: TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold),
                       )))),

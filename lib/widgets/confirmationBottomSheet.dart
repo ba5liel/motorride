@@ -147,7 +147,9 @@ class StartTrip extends StatelessWidget {
                         Navigator.pop(context);
                         showBottomSheet(
                             context: context,
-                            builder: (context) => RequestLoadingBottomSheet());
+                            builder: (context) => RequestLoadingBottomSheet(
+                                  msg: "Requesting Driver",
+                                ));
                         requestRide();
                       },
                       child: Container(

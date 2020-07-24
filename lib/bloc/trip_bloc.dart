@@ -17,22 +17,25 @@ class TripBloc {
     DocumentReference newRequest =
         Firestore.instance.collection("requests").document();
     String requestid = newRequest.documentID;
+    await newRequest
+        .setData({"driverID": drivers[_index].userID, "trip": trip.toMap()});
 
-    Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
-      _index++;
-      if (drivers.length == _index + 1) {
-        requestResponseStream.cancel();
-        return denied();
-      }
-      await newRequest
-          .setData({"driverID": drivers[_index].userID, "tip": trip.toMap()});
-    });
     requestResponseStream = Firestore.instance
         .collection("requests")
         .document(requestid)
         .snapshots()
         .listen((event) async {
-      if (event.data == null || event.data["accepted"] == null) return;
+      if (event.data == null) return;
+      Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
+        _index++;
+        if (_index >= drivers.length) {
+          requestResponseStream.cancel();
+          return denied();
+        }
+        await newRequest
+            .setData({"driverID": drivers[_index].userID, "tip": trip.toMap()});
+      });
+      if (event.data["accepted"] == null) return;
       if (event.data["accepted"]) {
         requestResponseStream.cancel();
         timeout.cancel();
@@ -41,11 +44,15 @@ class TripBloc {
       }
       if (drivers.length == _index + 1) {
         requestResponseStream.cancel();
+        timeout.cancel();
         return denied();
       }
-      await newRequest
-          .setData({"driverID": drivers[_index].userID, "trip": trip.toMap()});
-      _index++;
+      if (!event.data["accepted"]) {
+        await newRequest.setData(
+            {"driverID": drivers[_index].userID, "trip": trip.toMap()});
+        timeout.cancel();
+        _index++;
+      }
     });
   }
 
