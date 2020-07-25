@@ -94,16 +94,23 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
             .listen((docs) async {
           print("CHange Detected in DATABase\n");
           _markers = [];
+          drivers = [];
           docs.documents.forEach((doc) async {
-            if (doc.data["online"] == false) return;
-            int index = drivers
-                .indexWhere((element) => element.userID == doc.data["userID"]);
+            if (doc.data["online"] == false) {
+              return;
+            }
+            print(doc.data);
+            print(doc.data["online"]);
+            /* int index = drivers
+                .indexWhere((element) => element.userID == doc.data["userID"]); */
             LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
 
-            index == -1
-                ? drivers.add(new Driver.fromMap(doc.data)..setCords(newCords))
-                : drivers[index].setCords(newCords);
+            /* index == -1 */
+            /* ? */ drivers
+                .add(new Driver.fromMap(doc.data)..setCords(newCords));
+            /*   : drivers[index].setCords(newCords); */
           });
+          print(drivers);
           BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
               await MyFormulas.getBytesFromAsset(
                   "assets/images/motor_icon.png", 50));
@@ -119,6 +126,33 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
                       snippet: "${e.phone} ${e.targa}",
                       onTap: () {})))
               .toList());
+          if (_pickup != null)
+            _markers.add(Marker(
+                zIndex: 9999,
+                position: _pickup,
+                icon: BitmapDescriptor.fromBytes(
+                    await MyFormulas.getBytesFromAsset(
+                        "assets/images/pickup.png", 100)),
+                markerId: MarkerId("pickup"),
+                infoWindow: InfoWindow(
+                    title: "Pick Up",
+                    snippet: "Your Pick Up location",
+                    onTap: () {
+                      print("request driver");
+                    })));
+          if (_destination != null)
+            _markers.add(new Marker(
+                zIndex: 9999,
+                position: _destination,
+                icon: BitmapDescriptor.fromBytes(
+                    await MyFormulas.getBytesFromAsset(
+                        "assets/images/user_place_destination4.png", 100)),
+                markerId: MarkerId("destination"),
+                infoWindow: InfoWindow(
+                    title: "Destination",
+                    onTap: () {
+                      print("request driver");
+                    })));
           notifyListeners();
         });
       }
@@ -372,10 +406,15 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   }
 
   Future<void> requestRide(BuildContext context, Trip trip) async {
-    await request(trip, () {
+    await request(trip, (Trip t) {
       Navigator.pop(context);
       showBottomSheet(
-          context: context, builder: (context) => DriverInfoBottomSheet());
+          context: context,
+          builder: (context) => Wrap(children: [
+                DriverInfoBottomSheet(
+                  trip: t,
+                )
+              ]));
     }, () {
       Navigator.pop(context);
       Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
@@ -434,11 +473,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
       Navigator.pop(context);
       showBottomSheet(
           context: context,
-          builder: (context) => ConfirmationBottomSheet(
-              trip: trip,
-              requestRide: () {
-                requestRide(context, trip);
-              }));
+          builder: (context) =>
+              ConfirmationBottomSheet(trip: trip, requestRide: requestRide));
     } catch (e) {
       print(e);
       Navigator.pop(context);
@@ -473,7 +509,10 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
         await setDestination(context);
       }
     } catch (e) {
-      setChooseOnMap(context);
+      print(e);
+      Alerts.showSnackBar(context, "Fetch address name failed");
+      destinationAddress = "Unamed Road";
+      await setDestination(context);
     }
   }
 

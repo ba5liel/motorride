@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 class MyBottomSheet extends StatelessWidget {
-  const MyBottomSheet({Key key, @required this.child}) : super(key: key);
+  const MyBottomSheet({Key key, @required this.child, this.height}) : super(key: key);
   final Widget child;
+  final double height;
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height*.3,
+      height: height??MediaQuery.of(context).size.height*.3,
         decoration: BoxDecoration(
             color: Colors.white,
             /* image: DecorationImage(

@@ -4,7 +4,7 @@ import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/user.dart';
 
 class Trip {
-  final Driver driver;
+  Driver driver;
   final User user;
   final double eTA;
   final String arravialETA;
@@ -58,6 +58,10 @@ class Trip {
         "destination": destination.toJson(),
         "amount": amount,
       };
+  void setDriver(Driver d) {
+    driver = d;
+  }
+
   @override
   String toString() {
     return "arraivalETA $arravialETA amount: $amount, destination: $destinationAddress";
