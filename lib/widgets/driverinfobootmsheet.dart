@@ -147,6 +147,14 @@ class DriverInfoBottomSheet extends StatelessWidget {
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text("Plate number (${trip.driver.targa}) Away",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
+              ),
               buildRating(trip.driver.rating??3.5),
               SizedBox(
                 height: 10,

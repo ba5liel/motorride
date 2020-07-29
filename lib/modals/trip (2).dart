@@ -3,8 +3,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/user.dart';
 
-enum TRIPPHASES { FROMLOCATIONTOPICKUP, FROMLOCATIONTODESTINATION }
-
 class Trip {
   Driver driver;
   final User user;
@@ -18,6 +16,7 @@ class Trip {
   final String tripDistanceText;
   final LatLng pickup;
   final LatLng destination;
+
   Trip(
       {this.driver,
       @required this.user,
@@ -36,11 +35,11 @@ class Trip {
         user: User.fromMap(json["user"]),
         arravialETA: json["arravialETA"],
         eTA: json["eTA"],
-        pickupAddress: json["pickupAddress"],
+        pickupAddress: json["pickUpAddress"],
         destinationAddress: json["destinationAddress"],
-        nubmersOfDrivers: json["nubmersOfDrivers"],
+        nubmersOfDrivers: json["numbersOfDrivers"],
         tripDistance: json["tripDistance"],
-        pickup: LatLng.fromJson(json["pickup"]),
+        pickup: LatLng.fromJson(json["pick"]),
         destination: LatLng.fromJson(json["destination"]),
         tripDistanceText: json["tripDistanceText"],
         amount: json["amount"],

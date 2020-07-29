@@ -14,7 +14,7 @@ class MyGoogleMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
       ChangeNotifierProvider<MapBloc>(
-          create: (BuildContext context) => MapBloc()),
+          create: (BuildContext context) => MapBloc(context)),
     ], child: AllStacks());
   }
 }
@@ -49,6 +49,7 @@ class MapBackground extends StatelessWidget {
           : GoogleMap(
               //myLocationEnabled: true,
               mapType: MapType.normal,
+
               onCameraMove: (CameraPosition position) {
                 context.read<MapBloc>().setCameraCenter(position.target);
               },
@@ -60,6 +61,8 @@ class MapBackground extends StatelessWidget {
                 context.read<MapBloc>().setMapContoller = controller;
               },
               markers: Set<Marker>.of(context.select((MapBloc m) => m.markers)),
+              polylines:
+                  Set<Polyline>.of(context.watch<MapBloc>().polylines.values),
             ),
       FogEffect(),
       TopNavBar(),
@@ -86,7 +89,8 @@ class BottomNavBar extends StatelessWidget {
               padding: EdgeInsets.all(10.0),
               child: Column(
                 children: <Widget>[
-                 if(context.select((MapBloc m) => m.destination) != null) ShowConformationBtn(),
+                  if (context.select((MapBloc m) => m.destination) != null)
+                    ShowConformationBtn(),
                   ChooseOnMap(),
                   SizedBox(
                     height: 10,

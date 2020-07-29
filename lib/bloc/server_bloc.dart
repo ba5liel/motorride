@@ -1,18 +1,21 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/config/configs.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:motorride/util/alerts.dart';
 
 class NodeServer {
   StreamController<List> roomController = new StreamController<List>();
-  StreamController<List> getRoomController() => roomController;
+
   Dio dio = new Dio();
   List rooms;
   List prerooms = [];
-  Future<void> sendLocation(String userId, LatLng cord) async {
+  Future<void> sendLocation(
+      String userId, LatLng cord, BuildContext context) async {
     print(cord);
     print("send location called\n\n\n\n\n");
     try {
@@ -35,7 +38,11 @@ class NodeServer {
         });
     } catch (e) {
       print(e);
-      sendLocation(userId, cord);
+      Alerts.showPromptDialog(context, "No Internet Connection!",
+          "No Internet Connection, have you turned on Internet", () {
+        Navigator.pop(context);
+        sendLocation(userId, cord, context);
+      });
     }
   }
 

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:motorride/bloc/listeners_bloc.dart';
 import 'package:motorride/bloc/server_bloc.dart';
 import 'package:motorride/bloc/trip_bloc.dart';
 import 'package:motorride/config/configs.dart';
@@ -23,11 +25,12 @@ import 'package:motorride/widgets/requestloadingbottomsheet.dart';
 LatLng preCenter = LatLng(9.0336617, 38.7512801);
 enum SetMarketType { SHOW_PICKUP, SHOW_DESTINATION, SHOW_NOTHING }
 
-class MapBloc with ChangeNotifier, NodeServer, TripBloc {
-  MapBloc() {
+class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
+  MapBloc(this.context) {
     init();
     notifyListeners();
   }
+  BuildContext context;
   gc.Geolocator _geolocator = new gc.Geolocator();
   Location _location = new Location();
   LatLng _currentLocation;
@@ -35,6 +38,9 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   LatLng get destination => _destination;
   String destinationAddress;
   LatLng _pickup;
+  PolylinePoints polylinePoints;
+  List<LatLng> polylineCoordinates = [];
+  Map<PolylineId, Polyline> polylines = {};
   String pickupAddress = "your Location";
   List<Marker> _markers = List();
   bool _permission = false;
@@ -46,7 +52,10 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   GoogleMapController mapContoller;
   SetMarketType showSetMarker = SetMarketType.SHOW_NOTHING;
   LatLng _cameraCenter;
-
+  StreamSubscription<List<dynamic>> roomChangeSubscription;
+  BitmapDescriptor youicon;
+  BitmapDescriptor destIcon;
+  BitmapDescriptor pickupIcon;
   wsp.GoogleMapsPlaces _places =
       new wsp.GoogleMapsPlaces(apiKey: Config.googleMapApiKey);
 
@@ -58,10 +67,20 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
   void init() async {
     print("MapBloc Initalized");
     preCenter = LatLng(9.0336617, 38.7512801);
+    youicon = BitmapDescriptor.fromBytes(
+        await MyFormulas.getBytesFromAsset("assets/images/motor_icon.png", 50));
+    destIcon = BitmapDescriptor.fromBytes(await MyFormulas.getBytesFromAsset(
+        "assets/images/user_place_destination4.png", 100));
+    pickupIcon = BitmapDescriptor.fromBytes(
+        await MyFormulas.getBytesFromAsset("assets/images/pickup.png", 100));
     await changeLocationSetting(accuracy: LocationAccuracy.high, interval: 0);
     _currentLocation = await getCurrentLocation();
+    if (_currentLocation == null) {
+      Alerts.showSnackBar(context, "can't get location");
+      _currentLocation = await getCurrentLocation();
+    }
     //listen for my location change
-    await sendLocation(currentUser.userID, _currentLocation);
+    await sendLocation(currentUser.userID, _currentLocation, context);
     _location.onLocationChanged.listen((event) async {
       _currentLocation = LatLng(event.latitude, event.longitude);
       if (_currentLocation != null &&
@@ -73,97 +92,113 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
                   preCenter.latitude,
                   preCenter.longitude) >
               0.05) {
-        await sendLocation(currentUser.userID, _currentLocation);
-        address = (await _geolocator.placemarkFromCoordinates(
-                _currentLocation.latitude, _currentLocation.longitude))[0]
-            .name;
-        print(address);
-        _markers.removeWhere(
-            (element) => element.markerId.value == currentUser.userID);
-        await _addYouMarker();
+        try {
+          await sendLocation(currentUser.userID, _currentLocation, context);
+          address = (await _geolocator.placemarkFromCoordinates(
+                  _currentLocation.latitude, _currentLocation.longitude))[0]
+              .name;
+          print(address);
+          _markers.removeWhere(
+              (element) => element.markerId.value == currentUser.userID);
+          _addYouMarker();
+        } catch (e) {
+          Alerts.showSnackBar(context, "No Internet Connection!");
+        }
       }
+      preCenter = _currentLocation;
     });
+    // listen to rooms
+    listenToRoomChanges();
+    try {
+      _currentLocation = await getCurrentLocation();
+      _addYouMarker();
+      address = (await _geolocator.placemarkFromCoordinates(
+              _currentLocation.latitude, _currentLocation.longitude))[0]
+          .name;
+      print(address);
+      notifyListeners();
+    } catch (e) {
+      Alerts.showSnackBar(context, "No Internet Connection!");
+    }
+  }
 
-    getRoomController().stream.listen((rooms) async {
+  void listenToRoomChanges() {
+    roomChangeSubscription = roomController.stream.listen((rooms) async {
       print("======== Room Stream returned a value =========== $rooms");
       if (rooms != null && rooms.length > 0) {
-        Firestore.instance
-            .collection('drivers')
-            .where("room", whereIn: rooms)
-            .snapshots()
-            .listen((docs) async {
-          print("CHange Detected in DATABase\n");
-          _markers = [];
-          drivers = [];
-          docs.documents.forEach((doc) async {
-            if (doc.data["online"] == false) {
-              return;
-            }
-            print(doc.data);
-            print(doc.data["online"]);
-            /* int index = drivers
-                .indexWhere((element) => element.userID == doc.data["userID"]); */
-            LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
-
-            /* index == -1 */
-            /* ? */ drivers
-                .add(new Driver.fromMap(doc.data)..setCords(newCords));
-            /*   : drivers[index].setCords(newCords); */
-          });
-          print(drivers);
-          BitmapDescriptor iconm = BitmapDescriptor.fromBytes(
-              await MyFormulas.getBytesFromAsset(
-                  "assets/images/motor_icon.png", 50));
-          await _addYouMarker();
-          _markers = [..._markers]..addAll(drivers
-              .map((Driver e) => new Marker(
-                  zIndex: 9999,
-                  position: e.cords,
-                  icon: iconm,
-                  markerId: MarkerId(e.userID),
-                  infoWindow: InfoWindow(
-                      title: e.name,
-                      snippet: "${e.phone} ${e.targa}",
-                      onTap: () {})))
-              .toList());
-          if (_pickup != null)
-            _markers.add(Marker(
-                zIndex: 9999,
-                position: _pickup,
-                icon: BitmapDescriptor.fromBytes(
-                    await MyFormulas.getBytesFromAsset(
-                        "assets/images/pickup.png", 100)),
-                markerId: MarkerId("pickup"),
-                infoWindow: InfoWindow(
-                    title: "Pick Up",
-                    snippet: "Your Pick Up location",
-                    onTap: () {
-                      print("request driver");
-                    })));
-          if (_destination != null)
-            _markers.add(new Marker(
-                zIndex: 9999,
-                position: _destination,
-                icon: BitmapDescriptor.fromBytes(
-                    await MyFormulas.getBytesFromAsset(
-                        "assets/images/user_place_destination4.png", 100)),
-                markerId: MarkerId("destination"),
-                infoWindow: InfoWindow(
-                    title: "Destination",
-                    onTap: () {
-                      print("request driver");
-                    })));
-          notifyListeners();
-        });
+        closeDriverListerner();
+        listenToDrivers(rooms, showDriversLocationOnMap);
       }
     });
-    _currentLocation = await getCurrentLocation();
-    await _addYouMarker();
-    address = (await _geolocator.placemarkFromCoordinates(
-            _currentLocation.latitude, _currentLocation.longitude))[0]
-        .name;
-    print(address);
+  }
+
+  showDriverTripLocationOnMap(DocumentSnapshot doc) {
+    drivers = [];
+    LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
+    drivers.add(new Driver.fromMap(doc.data)..setCords(newCords));
+    showAllMarkers();
     notifyListeners();
+  }
+
+  showDriversLocationOnMap(QuerySnapshot docs) async {
+    print("CHange Detected in DATABase\n");
+    _markers = [];
+    drivers = [];
+    docs.documents.forEach((doc) async {
+      if (doc.data["online"] == false || doc.data["available"] == false) {
+        return;
+      }
+      print(doc.data);
+      print(doc.data["online"]);
+
+      LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
+
+      drivers.add(new Driver.fromMap(doc.data)..setCords(newCords));
+    });
+    print(drivers);
+
+    showAllMarkers();
+    notifyListeners();
+  }
+
+  void showAllMarkers() {
+    _addYouMarker();
+    _markers = [..._markers]..addAll(drivers
+        .map((Driver e) => new Marker(
+            zIndex: 9999,
+            position: e.cords,
+            icon: youicon,
+            markerId: MarkerId(e.userID),
+            infoWindow: InfoWindow(
+                title: e.name, snippet: "${e.phone} ${e.targa}", onTap: () {})))
+        .toList());
+    if (_pickup != null)
+      _markers.add(Marker(
+          zIndex: 9999,
+          position: _pickup,
+          icon: pickupIcon,
+          markerId: MarkerId("pickup"),
+          infoWindow: InfoWindow(
+              title: "Pick Up",
+              snippet: "Your Pick Up location",
+              onTap: () {
+                print("request driver");
+              })));
+    if (_destination != null)
+      _markers.add(new Marker(
+          zIndex: 9999,
+          position: _destination,
+          icon: destIcon,
+          markerId: MarkerId("destination"),
+          infoWindow: InfoWindow(
+              title: "Destination",
+              onTap: () {
+                print("request driver");
+              })));
+  }
+
+  void closeRoomChangeListener() {
+    roomChangeSubscription.cancel();
   }
 
   Future<void> changeLocationSetting(
@@ -192,9 +227,15 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
             (await _location.requestPermission() == PermissionStatus.granted);
         print("Permission: $_permission");
         if (_permission) {
-          location = await _location.getLocation();
+          location = await _location
+              .getLocation()
+              .timeout(Duration(seconds: 10), onTimeout: () {
+            return null;
+          });
           print(location);
-          return LatLng(location.latitude, location.longitude);
+          return location == null
+              ? null
+              : LatLng(location.latitude, location.longitude);
         }
       } else {
         bool serviceStatusResult = await _location.requestService();
@@ -405,9 +446,43 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     notifyListeners();
   }
 
+  Future<void> showRouteFromDriver(
+      List<dynamic> polys, LatLng origin, LatLng dest, bool isDest) async {
+    polylinePoints = PolylinePoints();
+    // Generating the list of coordinates to be used for
+    // drawing the polylines
+    // Adding the coordinates to the list
+    if (polys.isNotEmpty) {
+      polys.forEach((point) {
+        polylineCoordinates.add(LatLng(point["lat"], point["lng"]));
+      });
+    }
+    // Defining an ID
+    PolylineId id = PolylineId(isDest ? 'dest' : 'pickup');
+
+    // Initializing Polyline
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: isDest ? Colors.blue : Colors.red,
+      points: polylineCoordinates,
+      width: 3,
+    );
+
+    // Adding the polyline to the map
+    polylines[id] = polyline;
+    print(polylines);
+    mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
+        MyFormulas.boundsFromLatLngList([origin, dest]), 80));
+    notifyListeners();
+  }
+
   Future<void> requestRide(BuildContext context, Trip trip) async {
-    await request(trip, (Trip t) {
+    closeRoomChangeListener();
+    closeDriverListerner();
+    await request(trip, (Trip t, List<dynamic> polys) {
+      listenToTripDriver(showDriverTripLocationOnMap);
       Navigator.pop(context);
+      showRouteFromDriver(polys, trip.driver.cords, trip.pickup, false);
       showBottomSheet(
           context: context,
           builder: (context) => Wrap(children: [
@@ -416,6 +491,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
                 )
               ]));
     }, () {
+      listenToRoomChanges();
+
       Navigator.pop(context);
       Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
           "Sorry We can not provide our service at this time please try again later");
@@ -451,8 +528,11 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
           "Sorry We can not provide our service at this time please try again later");
     showBottomSheet(
         context: context,
-        builder: (context) => RequestLoadingBottomSheet(
-              msg: "Gathering Info",
+        builder: (context) => WillPopScope(
+              onWillPop: () async => false,
+              child: RequestLoadingBottomSheet(
+                msg: "Gathering Info",
+              ),
             ));
     try {
       sortDriverByShortestDistance(_pickup ?? _currentLocation);
@@ -531,11 +611,10 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc {
     notifyListeners();
   }
 
-  Future<Marker> _addYouMarker() async {
+  Marker _addYouMarker() {
     Marker user = new Marker(
         zIndex: 999,
-        icon: BitmapDescriptor.fromBytes(await MyFormulas.getBytesFromAsset(
-            "assets/images/user_place.png", 80)),
+        icon: youicon,
         position: _currentLocation,
         markerId: MarkerId(currentUser.name ?? currentUser.phone),
         infoWindow: InfoWindow(title: "You", onTap: () {}));

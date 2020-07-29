@@ -149,8 +149,11 @@ class StartTrip extends StatelessWidget {
                             context: context,
                             builder: (context) {
                               requestRide(context, trip);
-                              return RequestLoadingBottomSheet(
-                                msg: "Requesting Driver",
+                              return WillPopScope(
+                                onWillPop: () async => false,
+                                child: RequestLoadingBottomSheet(
+                                  msg: "Requesting Driver",
+                                ),
                               );
                             });
                       },
