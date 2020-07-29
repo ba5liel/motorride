@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/bloc/map_bloc.dart';
 import 'package:motorride/constants/theme.dart';
+import 'package:motorride/modals/user.dart';
 import 'package:motorride/widgets/fogeffect.dart';
 import 'package:motorride/widgets/setmarketcenter.dart';
-import 'package:motorride/widgets/topnavbar.dart';
+import 'package:motorride/widgets/searchbar.dart';
+import 'package:motorride/widgets/topinprogressbar.dart';
 import 'package:provider/provider.dart';
 
 class MyGoogleMap extends StatelessWidget {
-  const MyGoogleMap({Key key}) : super(key: key);
-
+  const MyGoogleMap({Key key, @required this.auth}) : super(key: key);
+  final Authentication auth;
   @override
   Widget build(BuildContext context) {
     return MultiProvider(providers: [
       ChangeNotifierProvider<MapBloc>(
-          create: (BuildContext context) => MapBloc(context)),
+          create: (BuildContext context) => MapBloc(context, auth)),
     ], child: AllStacks());
   }
 }
@@ -65,7 +68,11 @@ class MapBackground extends StatelessWidget {
                   Set<Polyline>.of(context.watch<MapBloc>().polylines.values),
             ),
       FogEffect(),
-      TopNavBar(),
+      context.select((MapBloc m) => m.tripInProgress)
+          ? TopInProgressBar(
+              trip: currentUser.inProgressTrip.trip,
+            )
+          : SearchBar(),
       BottomNavBar(),
       SetMarketCenter()
     ]);

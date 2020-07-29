@@ -4,8 +4,10 @@ import 'package:motorride/util/intent.dart';
 import 'package:motorride/widgets/mybottomsheet.dart';
 
 class DriverInfoBottomSheet extends StatelessWidget {
-  const DriverInfoBottomSheet({Key key, @required this.trip}) : super(key: key);
-
+  const DriverInfoBottomSheet(
+      {Key key, @required this.trip, @required this.cancleTrip})
+      : super(key: key);
+  final Function cancleTrip;
   final Trip trip;
   @override
   Widget build(BuildContext context) {
@@ -90,48 +92,48 @@ class DriverInfoBottomSheet extends StatelessWidget {
                   SizedBox(
                     width: 40,
                   ),
+                  Container(
+                    padding: EdgeInsets.all(10.0),
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                        color: Color(0xff04a56d),
+                        image: DecorationImage(
+                            fit: BoxFit.cover,
+                            image: trip.driver.photo == null
+                                ? AssetImage('assets/images/helmat2.png')
+                                : NetworkImage(trip.driver.photo)),
+                        borderRadius: BorderRadius.circular(15)),
+                  ),
+                  SizedBox(
+                    width: 40,
+                  ),
                   GestureDetector(
                     onTap: () {
                       MyIntent.callPhone(trip.driver.phone);
                     },
                     child: Container(
                       padding: EdgeInsets.all(10.0),
-                      width: 80,
-                      height: 80,
                       decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                                blurRadius: 8,
+                                color: Color(0xff04a56d).withOpacity(.3),
+                                offset: Offset(0,
+                                    5)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                            BoxShadow(
+                                blurRadius: 18,
+                                color: Color(0xff04a56d).withOpacity(.5),
+                                offset: Offset(0,
+                                    6)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                          ],
                           color: Color(0xff04a56d),
-                          image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: trip.driver.photo == null
-                                  ? AssetImage('assets/images/helmat2.png')
-                                  : NetworkImage(trip.driver.photo)),
-                          borderRadius: BorderRadius.circular(15)),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 40,
-                  ),
-                  Container(
-                    padding: EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 8,
-                              color: Color(0xff04a56d).withOpacity(.3),
-                              offset: Offset(0,
-                                  5)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                          BoxShadow(
-                              blurRadius: 18,
-                              color: Color(0xff04a56d).withOpacity(.5),
-                              offset: Offset(0,
-                                  6)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                        ],
-                        color: Color(0xff04a56d),
-                        borderRadius: BorderRadius.circular(8)),
-                    child: Icon(
-                      Icons.phone,
-                      size: 15,
-                      color: Colors.white,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: Icon(
+                        Icons.phone,
+                        size: 15,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -155,12 +157,13 @@ class DriverInfoBottomSheet extends StatelessWidget {
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
-              buildRating(trip.driver.rating??3.5),
+              buildRating(trip.driver.rating ?? 3.5),
               SizedBox(
                 height: 10,
               ),
               FlatButton(
                 onPressed: () {
+                  cancleTrip();
                   Navigator.pop(context);
                 },
                 child: Container(
@@ -183,7 +186,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
         ));
   }
 
-  Row buildRating(double rate ) {
+  Row buildRating(double rate) {
     int full = rate.floor();
     double forkes = rate - full;
     int half = forkes.round();

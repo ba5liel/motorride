@@ -39,13 +39,16 @@ class Authentication {
   }
 
   Future<void> _setUser(User user) async {
+    print("_setUse === Called");
     await Firestore.instance
         .collection('users')
         .document(user.userID)
-        .setData(user.toMap());
-    await _setLoggedIn(true);
+        .setData(user.toMapCompact());
+
     await getPref()
       ..setString("user", json.encode(user.toMap()));
+    await _setLoggedIn(true);
+    print(await isLoggedIn());
   }
 
   Future<void> _setLoggedIn(bool value) async {
@@ -154,8 +157,10 @@ class Authentication {
     return _user != null;
   }
 
-  Future<bool> onGoogleSignIn(BuildContext context) async {
+  Future<bool> onGoogleSignIn(BuildContext context, String phone) async {
     try {
+      // show loading
+      LoadingWidget();
       FirebaseUser user = await _handleSignIn(context);
       _createUser(user, context);
       return true;
@@ -165,22 +170,18 @@ class Authentication {
       return false;
     }
   }
-
-  void updateUser(String id, String firstname, String lastname, String phone,
-      String photo, BuildContext context) {
-    Firestore.instance
-        .collection('users')
-        .document(id)
-        .setData(currentUser.toMap());
-    currentUser = new User(
-        photo: photo, userID: id, name: "$firstname $lastname", phone: phone);
-    _setUser(currentUser);
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (BuildContext context) {
-      return HomePage();
-    }));
+Future updateUser(User newUser,
+      {bool saveTocloud = false, Function callBack}) async {
+    if (saveTocloud)
+      Firestore.instance
+          .collection('drivers')
+          .document(newUser.userID)
+          .setData(currentUser.toMapCompact());
+    currentUser = newUser;
+    await _setUser(currentUser).then((value) {
+      if (callBack != null) callBack();
+    });
   }
-
   Future<SharedPreferences> getPref() async {
     if (_pref == null) _pref = await SharedPreferences.getInstance();
     return _pref;
@@ -195,12 +196,16 @@ class Authentication {
         userID: user.uid,
         name: user.displayName,
         phone: user.phoneNumber,
-        rating: 5.0);
-    _setUser(currentUser).catchError((e) {
+        rating: 3.5);
+
+    _setUser(currentUser).catchError((e, s) {
       print("Error: $e");
+      print("s: $s");
     }).then((value) => Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (BuildContext context) {
-          return HomePage();
+          return HomePage(
+            auth: this,
+          );
         })));
   }
 

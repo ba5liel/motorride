@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/constants/theme.dart';
+import 'package:motorride/util/alerts.dart';
 
 class Register extends StatelessWidget {
   Register({Key key, this.auth}) : super(key: key);
@@ -33,7 +34,8 @@ class Register extends StatelessWidget {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(4.0)),
                             boxShadow: <BoxShadow>[
                               BoxShadow(
                                   blurRadius: 5,
@@ -42,7 +44,8 @@ class Register extends StatelessWidget {
                             ]),
                         child: InternationalPhoneNumberInput(
                           inputDecoration: InputDecoration(
-                              fillColor: Colors.white, border: InputBorder.none),
+                              fillColor: Colors.white,
+                              border: InputBorder.none),
                           onInputChanged: (PhoneNumber number) {
                             phoneNumber.add(number.phoneNumber);
                           },
@@ -92,7 +95,8 @@ class Register extends StatelessWidget {
                               height: 2, width: 100.0, color: Colors.black38),
                           Text(
                             "OR",
-                            style: TextStyle(color: Colors.white70, fontSize: 18),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 18),
                           ),
                           Container(
                               height: 2, width: 100.0, color: Colors.black38)
@@ -104,7 +108,8 @@ class Register extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                             color: Color(0xff4285f4),
-                            borderRadius: BorderRadius.all(Radius.circular(4.0)),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(4.0)),
                             boxShadow: <BoxShadow>[
                               BoxShadow(
                                   blurRadius: 5,
@@ -115,7 +120,19 @@ class Register extends StatelessWidget {
                           return FlatButton(
                             padding: EdgeInsets.all(10),
                             onPressed: () async {
-                              auth.onGoogleSignIn(context);
+                              if (phoneNumber.length == 0 ||
+                                  phoneNumber[phoneNumber.length - 1] == null ||
+                                  !RegExp(r'^(\+?2519)|(09)([0-9]){8,8}$')
+                                      .hasMatch(phoneNumber[
+                                          phoneNumber.length - 1])) {
+                                Alerts.showAlertDialog(
+                                    context,
+                                    "Invalid Phone Number",
+                                    "Enter a valid Phonr Number in order to continue");
+                                return;
+                              }
+                              auth.onGoogleSignIn(context,
+                                  phoneNumber[phoneNumber.length - 1].trim());
                             },
                             child: Row(
                               children: <Widget>[

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
 import 'package:motorride/pages/helppage.dart';
@@ -8,15 +9,15 @@ import 'package:motorride/pages/profilepage.dart';
 import 'package:motorride/widgets/googlemap.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key key}) : super(key: key);
-
+  const HomePage({Key key, @required this.auth}) : super(key: key);
+  final Authentication auth;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xfff7f8fc),
       body: Stack(
         children: <Widget>[
-          MyGoogleMap(),
+          MyGoogleMap(auth: auth,),
         ],
       ),
       drawer: Drawer(

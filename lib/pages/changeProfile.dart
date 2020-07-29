@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/pages/home.dart';
 
 class ChangeProfile extends StatelessWidget {
   ChangeProfile({Key key}) : super(key: key);
@@ -159,12 +160,21 @@ class ChangeProfile extends StatelessWidget {
                               if (formKey.currentState.validate())
                                 try {
                                   auth.updateUser(
-                                      currentUser.userID,
-                                      firstNameController.text,
-                                      lastNameController.text,
-                                      phoneController.text ?? currentUser.phone,
-                                      currentUser.photo,
-                                      context);
+                                      currentUser
+                                        ..setName(firstNameController.text,
+                                            lastNameController.text)
+                                        ..setPhone(phoneController.text ??
+                                            currentUser.phone)
+                                        ..setPhoto(currentUser.photo),
+                                      saveTocloud: true, callBack: () {
+                                    Navigator.pushReplacement(context,
+                                        MaterialPageRoute(
+                                            builder: (BuildContext context) {
+                                      return HomePage(
+                                        auth: auth,
+                                      );
+                                    }));
+                                  });
                                 } catch (e) {
                                   Scaffold.of(context).showSnackBar(SnackBar(
                                     content: Text(e.toString()),

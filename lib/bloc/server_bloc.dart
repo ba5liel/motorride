@@ -9,7 +9,8 @@ import 'package:dio/dio.dart';
 import 'package:motorride/util/alerts.dart';
 
 class NodeServer {
-  StreamController<List> roomController = new StreamController<List>();
+  StreamController<List> roomController =
+      new StreamController<List>();
 
   Dio dio = new Dio();
   List rooms;

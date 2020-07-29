@@ -20,7 +20,7 @@ class User {
     this.tripHistories,
   });
   factory User.fromMap(Map<String, dynamic> json) {
-    List<dynamic> thl = json["tripHistories"];
+    List<dynamic> thl = json["tripHistories"] ?? [];
     return new User(
         userID: json["userID"],
         name: json["name"],
@@ -42,7 +42,9 @@ class User {
         "rating": rating,
         "inProgressTrip":
             inProgressTrip != null ? inProgressTrip.toMap() : null,
-        "tripHistories": tripHistories.map((e) => e.toMap()).toList(),
+        "tripHistories": tripHistories != null
+            ? tripHistories.map((e) => e.toMap()).toList()
+            : [],
       };
   Map<String, dynamic> toMapCompact() => {
         "userID": userID,

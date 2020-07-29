@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/trip.dart';
+import 'package:motorride/modals/triphistory.dart';
 import 'package:motorride/modals/user.dart';
 import 'package:motorride/util/formulas.dart';
 
@@ -13,19 +14,18 @@ class TripBloc {
   DocumentReference newRequest;
   StreamSubscription<DocumentSnapshot> requestResponseStream;
   Future<void> request(
-      Trip trip, Function(Trip, List) accepted, Function denied) async {
+      Trip trip, Function(TripHistory) accepted, Function denied) async {
 //get the closest driver
 //write a request to the database
     int _index = 0;
     newRequest = Firestore.instance.collection("requests").document();
     requestid = newRequest.documentID;
-    await newRequest.setData({
-      "driverID": drivers[_index].userID,
-      "userID": currentUser.userID,
-      "active": true,
-      "trip": trip.toMap()
-    });
-
+    TripHistory th = TripHistory(
+        active: true,
+        trip: trip..setDriver(drivers[_index]),
+        driverID: drivers[_index].userID,
+        userID: currentUser.userID);
+    await newRequest.setData(th.toMap());
     requestResponseStream = Firestore.instance
         .collection("requests")
         .document(requestid)
@@ -46,8 +46,7 @@ class TripBloc {
         requestResponseStream.cancel();
         //timeout.cancel();
         print("drivers[0] ${drivers[0]}");
-        accepted(trip..setDriver(Driver.fromMap(event.data["trip"]["driver"])),
-            event.data["polys"]);
+        accepted(th..setPloys(event.data["polys"]));
         return;
       }
       if (drivers.length == _index + 1) {
@@ -71,7 +70,7 @@ class TripBloc {
             pickup.longitude, b.cords.latitude, b.cords.longitude)));
   }
 
-  void cancle(String reason) {
+  void cancleTrip(String reason) {
     newRequest.setData({
       "cancled": true,
       "complete": false,

@@ -75,12 +75,13 @@ class Initializer extends StatelessWidget {
   }
 
   Widget getHomePage(context) {
-  
     return FutureBuilder(
-      future: auth.getUser(),
+        future: auth.getUser(),
         builder: (BuildContext context, AsyncSnapshot<User> snapUser) {
-          if(snapUser.hasData && currentUser == snapUser.data)
-          return HomePage();
+          if (snapUser.hasData)
+            return HomePage(
+              auth: auth,
+            );
           return Container();
         });
   }

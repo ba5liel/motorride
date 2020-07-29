@@ -9,7 +9,7 @@ class TripHistory {
   final bool completed;
   final String driverID;
   final String userID;
-  final List<dynamic> polys;
+  List<dynamic> polys;
   final Trip trip;
   TripHistory(
       {this.accepted,
@@ -47,6 +47,10 @@ class TripHistory {
         "polys": polys,
         "trip": trip != null ? trip.toMap() : null
       };
+  void setPloys(List<dynamic> p) {
+    polys = p;
+  }
+
   @override
   String toString() {
     return "TripHistoryID $tripID completed: $completed, trip: $trip";
