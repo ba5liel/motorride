@@ -262,7 +262,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   showDriversLocationOnMap(QuerySnapshot docs) async {
     print("CHange Detected in DATABase\n");
     print(docs.documents);
-    print(docs.documents[0].data);
     _markers = [];
     drivers = [];
     docs.documents.forEach((doc) async {
@@ -661,6 +660,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       ..setInProgressTrip(null));
     tripInProgress = false;
     cancleRoute();
+    _markers = [];
+    _addYouMarker();
     closeDriverTripListerner();
     resumeDriverStream();
     notifyListeners();
