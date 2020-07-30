@@ -10,12 +10,9 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MyListPageBuilder(title: "Profile", children: <Widget>[
-      PersonInfo(currentUser.photo, currentUser.name, currentUser.phone, 4.5),
+      PersonInfo(currentUser.photo, currentUser.name, currentUser.phone,
+          currentUser.rating ?? 3.5),
       ProfileBody(),
     ]);
   }
 }
-
-
-
-

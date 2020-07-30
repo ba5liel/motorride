@@ -18,6 +18,8 @@ class Trip {
   final String tripDistanceText;
   final LatLng pickup;
   final LatLng destination;
+  Function(BuildContext) complete;
+  Function(BuildContext) cancle;
   Trip(
       {this.driver,
       @required this.user,
@@ -47,7 +49,7 @@ class Trip {
       );
   Map<String, dynamic> toMap() => {
         "driver": driver == null ? null : driver.toMap(),
-        "user": user.toMap(),
+        "user": user.toMapCompact(),
         "arravialETA": arravialETA,
         "eTA": eTA,
         "pickupAddress": pickupAddress,

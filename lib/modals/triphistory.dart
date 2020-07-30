@@ -6,7 +6,7 @@ class TripHistory {
   final bool cancled;
   final bool active;
   TRIPPHASES phase = TRIPPHASES.FROMLOCATIONTOPICKUP;
-  final bool completed;
+  bool completed;
   final String driverID;
   final String userID;
   List<dynamic> polys;
@@ -39,7 +39,7 @@ class TripHistory {
         "tripID": tripID,
         "accepted": accepted,
         "cancled": cancled,
-        "name": active,
+        "active": active,
         "complete": completed,
         "driverID": driverID,
         "userID": userID,
@@ -49,6 +49,14 @@ class TripHistory {
       };
   void setPloys(List<dynamic> p) {
     polys = p;
+  }
+
+  void setPhase(TRIPPHASES p) {
+    phase = p;
+  }
+
+  void setComplete(bool c) {
+    completed = c;
   }
 
   @override

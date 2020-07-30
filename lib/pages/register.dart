@@ -131,8 +131,10 @@ class Register extends StatelessWidget {
                                     "Enter a valid Phonr Number in order to continue");
                                 return;
                               }
-                              auth.onGoogleSignIn(context,
+                              bool signinsuccess = await auth.onGoogleSignIn(
+                                  context,
                                   phoneNumber[phoneNumber.length - 1].trim());
+                              print("signinsuccess $signinsuccess");
                             },
                             child: Row(
                               children: <Widget>[

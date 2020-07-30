@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:motorride/constants/theme.dart';
-import 'package:motorride/modals/driver.dart';
+import 'package:motorride/modals/trip.dart';
+import 'package:motorride/modals/user.dart';
 import 'package:motorride/widgets/ongoing.dart';
 
 class InProgressPage extends StatelessWidget {
   const InProgressPage({Key key, this.trip}) : super(key: key);
-  final Driver trip;
+  final Trip trip;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +39,9 @@ class InProgressPage extends StatelessWidget {
             Expanded(
               child: Center(
                   child: trip != null
-                      ? OnGoing(trip: trip)
+                      ? OnGoing(
+                          trip: currentUser.inProgressTrip.trip,
+                        )
                       : Container(
                           decoration: MyTheme.myPlateDecoration,
                           padding: EdgeInsets.fromLTRB(10, 18, 10, 10),

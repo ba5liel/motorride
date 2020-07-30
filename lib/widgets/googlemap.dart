@@ -62,6 +62,7 @@ class MapBackground extends StatelessWidget {
               ),
               onMapCreated: (GoogleMapController controller) {
                 context.read<MapBloc>().setMapContoller = controller;
+                context.read<MapBloc>().loadPreviousTrip();
               },
               markers: Set<Marker>.of(context.select((MapBloc m) => m.markers)),
               polylines:

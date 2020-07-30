@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:motorride/constants/theme.dart';
-import 'package:motorride/modals/driver.dart';
+import 'package:motorride/modals/trip.dart';
+import 'package:motorride/modals/user.dart';
 import 'package:motorride/widgets/profileinfo.dart';
 
 class OnGoing extends StatelessWidget {
-  const OnGoing({Key key, @required this.trip}) : super(key: key);
-  final Driver trip;
+  const OnGoing({
+    Key key,
+    @required this.trip,
+  }) : super(key: key);
+  final Trip trip;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -29,10 +34,10 @@ class OnGoing extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   PersonInfo(
-                    trip.photo,
-                    trip.name,
-                    trip.phone,
-                    trip.rating ?? 5,
+                    trip.driver.photo,
+                    trip.driver.name,
+                    trip.driver.phone,
+                    trip.driver.rating ?? 5,
                     raduis: 20,
                     font: 13,
                     color: Colors.black54,
@@ -41,7 +46,7 @@ class OnGoing extends StatelessWidget {
                         vertical: 0.0, horizontal: 0),
                   ),
                   Text(
-                    "5m:10s",
+                    "${trip.arravialETA}",
                     style: TextStyle(color: Colors.black45, fontSize: 13),
                   ),
                 ],
@@ -87,7 +92,9 @@ class OnGoing extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.navigation,
@@ -105,6 +112,21 @@ class OnGoing extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            GestureDetector(
+              onTap: () {
+                currentUser.inProgressTrip.trip.complete(context);
+              },
+              child: Container(
+                  color: Color(0xff04a56d),
+                  padding: const EdgeInsets.all(10.0),
+                  child: Center(
+                    child: Text("Complete",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                  )),
             ),
           ],
         ));

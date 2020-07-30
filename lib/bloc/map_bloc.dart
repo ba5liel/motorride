@@ -14,6 +14,7 @@ import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/triphistory.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/pages/completepage.dart';
 import 'package:motorride/util/alerts.dart';
 import 'package:motorride/util/formulas.dart';
 import 'package:google_maps_webservice/places.dart' as wsp;
@@ -80,7 +81,9 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     sendLocation(currentUser.userID, _currentLocation, context);
     await listenToLocationChange();
     // listen to rooms
-    listenToRoomChanges();
+    if (currentUser.inProgressTrip == null ||
+        currentUser.inProgressTrip.polys == null ||
+        currentUser.inProgressTrip.polys.length == 0) listenToRoomChanges();
     try {
       _currentLocation = await getCurrentLocation();
       _addYouMarker();
@@ -95,18 +98,25 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   Future<void> loadPreviousTrip() async {
+    currentUser.inProgressTrip.trip.cancle = goToCanclationPage;
+    currentUser.inProgressTrip.trip.complete = goToCompletePage;
+
+    print(
+        "currentUser.inProgressTrip.trip.complete ${currentUser.inProgressTrip.trip.complete}");
     print("currentUser.inProgressTrip ${currentUser.inProgressTrip}");
     if (currentUser.inProgressTrip != null &&
         currentUser.inProgressTrip.polys != null &&
         currentUser.inProgressTrip.polys.length != 0) {
+      closeDriverListerner();
       print(
           "currentUser.inProgressTrip.polys ${currentUser.inProgressTrip.polys}");
+      _pickup = currentUser.inProgressTrip.trip.pickup;
+      _destination = currentUser.inProgressTrip.trip.destination;
+      listenToTripDriver(showDriverTripLocationOnMap);
       if (currentUser.inProgressTrip.phase == TRIPPHASES.FROMLOCATIONTOPICKUP) {
         showRoute(currentUser.inProgressTrip.polys,
             currentUser.inProgressTrip.trip.pickup, _currentLocation,
             isDest: false, callback: () {
-          showBothMarkers(currentUser.inProgressTrip.trip.pickup,
-              currentUser.inProgressTrip.trip.destination);
           mapContoller.animateCamera(CameraUpdate.newLatLngBounds(
               MyFormulas.boundsFromLatLngList([
                 _currentLocation,
@@ -235,7 +245,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     roomChangeSubscription = roomController.stream.listen((rooms) async {
       print("======== Room Stream returned a value =========== $rooms");
       if (rooms != null && rooms.length > 0) {
-        closeDriverListerner();
         listenToDrivers(rooms, showDriversLocationOnMap);
       }
     });
@@ -243,6 +252,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
 
   showDriverTripLocationOnMap(DocumentSnapshot doc) {
     drivers = [];
+
     LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
     drivers.add(new Driver.fromMap(doc.data)..setCords(newCords));
     showAllMarkers();
@@ -251,6 +261,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
 
   showDriversLocationOnMap(QuerySnapshot docs) async {
     print("CHange Detected in DATABase\n");
+    print(docs.documents);
+    print(docs.documents[0].data);
     _markers = [];
     drivers = [];
     docs.documents.forEach((doc) async {
@@ -433,7 +445,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
         pickupAddress = _prediction.description;
         _pickup = new LatLng(detail.result.geometry.location.lat,
             detail.result.geometry.location.lng);
-        await setPickUp();
+        setPickUp();
         notifyListeners();
       }
     } catch (e, t) {
@@ -507,7 +519,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     }
   }
 
-  Future<void> setPickUp() async {
+  void setPickUp() {
     print("setPick up Called");
     _markers.removeWhere((element) => element.markerId.value == "pickup");
 
@@ -585,20 +597,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
                   DriverInfoBottomSheet(
                     trip: currentUser.inProgressTrip.trip,
                     cancleTrip: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (BuildContext context) => CanclePage(
-                                    cancle: (String why) async {
-                                      await auth.updateUser(currentUser
-                                        ..addHistory(currentUser.inProgressTrip)
-                                        ..setInProgressTrip(null));
-                                      tripInProgress = false;
-                                      Navigator.pop(context);
-                                      cancleTrip(why);
-                                      notifyListeners();
-                                    },
-                                  )));
+                      goToCanclationPage(context);
                     },
                   )
                 ]));
@@ -614,7 +613,67 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
           "Sorry We can not provide our service at this time please try again later");
       notifyListeners();
+    }, (TripHistory th) {
+      auth.updateUser(currentUser..setInProgressTrip(th), callBack: () {
+        showRoute(
+            currentUser.inProgressTrip.polys, trip.driver.cords, trip.pickup,
+            isDest: false);
+        Alerts.showAlertDialog(context, "Your driver has arrived",
+            "meet your driver at the pick up location");
+        notifyListeners();
+      });
     });
+  }
+
+  void cancleRoute() {
+    polylinePoints = null;
+    polylineCoordinates = [];
+    polylines = {};
+    mapContoller.animateCamera(CameraUpdate.newLatLng(_currentLocation));
+    _markers = [];
+    _addYouMarker();
+    tripInProgress = false;
+  }
+
+  void goToCanclationPage(BuildContext context) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => CanclePage(
+                  cancle: (String why) async {
+                    await auth.updateUser(currentUser
+                      ..addHistory(currentUser.inProgressTrip)
+                      ..setInProgressTrip(null));
+                    tripInProgress = false;
+                    cancleRoute();
+                    Navigator.pop(context);
+                    closeDriverTripListerner();
+                    resumeDriverStream();
+                    cancleTrip(why);
+                    notifyListeners();
+                  },
+                )));
+  }
+
+  void goToCompletePage(BuildContext context) {
+    auth.updateUser(currentUser
+      ..addHistory(currentUser.inProgressTrip..setComplete(true))
+      ..setInProgressTrip(null));
+    tripInProgress = false;
+    cancleRoute();
+    closeDriverTripListerner();
+    resumeDriverStream();
+    notifyListeners();
+    Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) => CompletePage()));
+  }
+
+  void resumeDriverStream() {
+    if (driversStream != null) {
+      driversStream.resume();
+    } else {
+      listenToRoomChanges();
+    }
   }
 
   Future<void> setDestination(BuildContext context) async {
@@ -695,7 +754,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
         pickupAddress = (await _geolocator.placemarkFromCoordinates(
                 _pickup.latitude, _pickup.longitude))[0]
             .name;
-        await setPickUp();
+        setPickUp();
       }
       if (showSetMarker == SetMarketType.SHOW_DESTINATION) {
         print("Destination choosen");

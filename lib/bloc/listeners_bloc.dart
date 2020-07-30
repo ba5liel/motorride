@@ -11,6 +11,7 @@ class MyListeners {
     driversStream = Firestore.instance
         .collection('drivers')
         .where("room", whereIn: rooms)
+        .where("available", isEqualTo: true)
         .snapshots()
         .listen(callback);
   }

@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:motorride/modals/triphistory.dart';
 import 'package:motorride/pages/home.dart';
 import 'package:motorride/util/alerts.dart';
 import 'package:motorride/widgets/loading.dart';
@@ -40,10 +41,6 @@ class Authentication {
 
   Future<void> _setUser(User user) async {
     print("_setUse === Called");
-    await Firestore.instance
-        .collection('users')
-        .document(user.userID)
-        .setData(user.toMapCompact());
 
     await getPref()
       ..setString("user", json.encode(user.toMap()));
@@ -73,7 +70,7 @@ class Authentication {
           AuthResult result = await _auth.signInWithCredential(credential);
           _user = result.user;
           if (_user != null) {
-            _createUser(_user, context);
+            await _createUser(_user, phone, context);
           } else {
             print("Error");
           }
@@ -140,7 +137,7 @@ class Authentication {
                           _user = result.user;
 
                           if (_user != null) {
-                            _createUser(_user, context);
+                            await _createUser(_user, phone, context);
                           } else {
                             print("Error");
                           }
@@ -160,9 +157,9 @@ class Authentication {
   Future<bool> onGoogleSignIn(BuildContext context, String phone) async {
     try {
       // show loading
-      LoadingWidget();
+      showDialog(context: context, child: LoadingWidget());
       FirebaseUser user = await _handleSignIn(context);
-      _createUser(user, context);
+      await _createUser(user, phone, context);
       return true;
     } catch (e, t) {
       print(e);
@@ -170,11 +167,12 @@ class Authentication {
       return false;
     }
   }
-Future updateUser(User newUser,
+
+  Future updateUser(User newUser,
       {bool saveTocloud = false, Function callBack}) async {
     if (saveTocloud)
       Firestore.instance
-          .collection('drivers')
+          .collection('users')
           .document(newUser.userID)
           .setData(currentUser.toMapCompact());
     currentUser = newUser;
@@ -182,31 +180,60 @@ Future updateUser(User newUser,
       if (callBack != null) callBack();
     });
   }
+
   Future<SharedPreferences> getPref() async {
     if (_pref == null) _pref = await SharedPreferences.getInstance();
     return _pref;
   }
 
-  void _createUser(FirebaseUser user, BuildContext context) {
+  Future _createUser(
+      FirebaseUser user, String phone, BuildContext context) async {
     if (user == null) {
       Alerts.showSnackBar(context, "Sign in failed");
       return;
     }
-    currentUser = new User(
-        userID: user.uid,
-        name: user.displayName,
-        phone: user.phoneNumber,
-        rating: 3.5);
 
-    _setUser(currentUser).catchError((e, s) {
+    List<TripHistory> tripHistories = [];
+    TripHistory inProgress;
+    List<DocumentSnapshot> requestHistory = (await Firestore.instance
+            .collection('requests')
+            .where('userID', isEqualTo: user.uid)
+            .getDocuments())
+        .documents;
+    requestHistory.forEach((e) {
+      TripHistory th = new TripHistory.fromMap({
+        ...e.data,
+        ...{"tripID": e.documentID}
+      });
+      th.completed == null && th.active == true && th.accepted == true
+          ? inProgress = th
+          : tripHistories.add(th);
+    });
+    currentUser = new User(
+      photo: user.photoUrl,
+      userID: user.uid,
+      inProgressTrip: inProgress,
+      tripHistories: tripHistories,
+      name: user.displayName,
+      phone: phone,
+    );
+
+    await Firestore.instance
+        .collection('users')
+        .document(currentUser.userID)
+        .setData(
+          currentUser.toMapCompact(),
+        );
+    await _setUser(currentUser).catchError((e, s) {
       print("Error: $e");
       print("s: $s");
-    }).then((value) => Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (BuildContext context) {
-          return HomePage(
-            auth: this,
-          );
-        })));
+    });
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (BuildContext context) {
+      return HomePage(
+        auth: this,
+      );
+    }));
   }
 
   Future<FirebaseUser> _handleSignIn(context) async {

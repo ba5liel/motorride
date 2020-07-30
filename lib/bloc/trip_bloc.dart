@@ -13,8 +13,8 @@ class TripBloc {
   String requestid;
   DocumentReference newRequest;
   StreamSubscription<DocumentSnapshot> requestResponseStream;
-  Future<void> request(
-      Trip trip, Function(TripHistory) accepted, Function denied) async {
+  Future<void> request(Trip trip, Function(TripHistory) accepted,
+      Function denied, Function(TripHistory) arrived) async {
 //get the closest driver
 //write a request to the database
     int _index = 0;
@@ -23,6 +23,7 @@ class TripBloc {
     TripHistory th = TripHistory(
         active: true,
         trip: trip..setDriver(drivers[_index]),
+        tripID: requestid,
         driverID: drivers[_index].userID,
         userID: currentUser.userID);
     await newRequest.setData(th.toMap());
@@ -31,6 +32,7 @@ class TripBloc {
         .document(requestid)
         .snapshots()
         .listen((event) async {
+      print("\n\nnew Request Event ${event.data}");
       if (event.data == null) return;
       /*  Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
         _index++;
@@ -55,10 +57,15 @@ class TripBloc {
         return denied();
       }
       if (!event.data["accepted"]) {
-        await newRequest.setData(
+        await newRequest.updateData(
             {"driverID": drivers[_index].userID, "trip": trip.toMap()});
         //timeout.cancel();
         _index++;
+      }
+      if (event.data["phase"] == 1) {
+        arrived(th
+          ..setPloys(event.data["polys"])
+          ..setPhase(TRIPPHASES.FROMLOCATIONTODESTINATION));
       }
     });
   }
@@ -71,7 +78,7 @@ class TripBloc {
   }
 
   void cancleTrip(String reason) {
-    newRequest.setData({
+    newRequest.updateData({
       "cancled": true,
       "complete": false,
       "active": false,
