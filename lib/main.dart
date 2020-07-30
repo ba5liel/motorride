@@ -4,7 +4,6 @@ import 'package:motorride/pages/home.dart';
 import 'package:motorride/pages/loadingpage.dart';
 import 'package:motorride/pages/register.dart';
 import 'package:motorride/services/service_locator.dart';
-import 'package:motorride/services/calls_and_messages_service.dart';
 
 import 'modals/user.dart';
 

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:motorride/modals/trip.dart';
-import 'package:motorride/util/intent.dart';
+import 'package:motorride/services/calls_and_messages_service.dart';
+import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/widgets/mybottomsheet.dart';
 
 class DriverInfoBottomSheet extends StatelessWidget {
-  const DriverInfoBottomSheet(
+  DriverInfoBottomSheet(
       {Key key, @required this.trip, @required this.cancleTrip})
       : super(key: key);
   final Function cancleTrip;
   final Trip trip;
+  final CallsAndMessagesService _service = locator<CallsAndMessagesService>();
+
   @override
   Widget build(BuildContext context) {
     return MyBottomSheet(
@@ -65,7 +68,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
                   children: <Widget>[
                     GestureDetector(
                       onTap: () {
-                        MyIntent.textPhone(trip.driver.phone);
+                        _service.sendSms(trip.driver.phone);
                       },
                       child: Container(
                         padding: EdgeInsets.all(10.0),
@@ -112,7 +115,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        MyIntent.callPhone(trip.driver.phone);
+                        _service.call(trip.driver.phone);
                       },
                       child: Container(
                         padding: EdgeInsets.all(10.0),
