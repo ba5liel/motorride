@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/services/calls_and_messages_service.dart';
+import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/widgets/profileinfo.dart';
 
 class OnGoing extends StatelessWidget {
-  const OnGoing({
+  OnGoing({
     Key key,
     @required this.trip,
   }) : super(key: key);
   final Trip trip;
-
+  final CallsAndMessagesService _service = locator<CallsAndMessagesService>();
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -59,7 +61,9 @@ class OnGoing extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      _service.call(trip.driver.phone);
+                    },
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.call, color: MyTheme.primaryColor, size: 20),
@@ -75,7 +79,9 @@ class OnGoing extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      _service.sendSms(trip.driver.phone);
+                    },
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.textsms,
