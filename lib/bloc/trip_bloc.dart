@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:motorride/config/configs.dart';
 import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/triphistory.dart';
@@ -12,6 +13,7 @@ class TripBloc {
   Trip trip;
   String requestid;
   DocumentReference newRequest;
+  List _driversWithCredit = [];
   StreamSubscription<DocumentSnapshot> requestResponseStream;
   Future<void> request(Trip trip, Function(TripHistory) accepted,
       Function denied, Function(TripHistory) arrived) async {
@@ -22,9 +24,9 @@ class TripBloc {
     requestid = newRequest.documentID;
     TripHistory th = TripHistory(
         active: true,
-        trip: trip..setDriver(drivers[_index]),
+        trip: trip..setDriver(_driversWithCredit[_index]),
         tripID: requestid,
-        driverID: drivers[_index].userID,
+        driverID: _driversWithCredit[_index].userID,
         userID: currentUser.userID);
     await newRequest.setData(th.toMap());
     requestResponseStream = Firestore.instance
@@ -36,29 +38,31 @@ class TripBloc {
       if (event.data == null) return;
       /*  Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
         _index++;
-        if (_index >= drivers.length) {
+        if (_index >= _driversWithCredit.length) {
           requestResponseStream.cancel();
           return denied();
         }
         await newRequest
-            .setData({"driverID": drivers[_index].userID, "tip": trip.toMap()});
+            .setData({"driverID": _driversWithCredit[_index].userID, "tip": trip.toMap()});
       }); */
       if (event.data["accepted"] == null) return;
       if (event.data["accepted"]) {
         requestResponseStream.cancel();
         //timeout.cancel();
-        print("drivers[0] ${drivers[0]}");
+        print("_driversWithCredit[0] ${_driversWithCredit[0]}");
         accepted(th..setPloys(event.data["polys"]));
         return;
       }
-      if (drivers.length == _index + 1) {
+      if (_driversWithCredit.length == _index + 1) {
         requestResponseStream.cancel();
         //timeout.cancel();
         return denied();
       }
       if (!event.data["accepted"]) {
-        await newRequest.updateData(
-            {"driverID": drivers[_index].userID, "trip": trip.toMap()});
+        await newRequest.updateData({
+          "driverID": _driversWithCredit[_index].userID,
+          "trip": trip.toMap()
+        });
         //timeout.cancel();
         _index++;
       }
@@ -70,11 +74,20 @@ class TripBloc {
     });
   }
 
-  void sortDriverByShortestDistance(LatLng pickup) {
+  setDriversWithEnougCredit(double amount) {
+    _driversWithCredit = drivers
+        .where((element) =>
+            element.credit != null &&
+            element.credit > (amount * Config.orderFeeOrder))
+        .toList();
+  }
+
+  void sortDriverByShortestDistance(LatLng pickup, double amount) {
     drivers.sort((a, b) => MyFormulas.getDistanceFromLatLonInKm(pickup.latitude,
             pickup.longitude, a.cords.latitude, a.cords.longitude)
         .compareTo(MyFormulas.getDistanceFromLatLonInKm(pickup.latitude,
             pickup.longitude, b.cords.latitude, b.cords.longitude)));
+    setDriversWithEnougCredit(amount);
   }
 
   void cancleTrip(String reason) {

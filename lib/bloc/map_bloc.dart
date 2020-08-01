@@ -98,15 +98,14 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   Future<void> loadPreviousTrip() async {
-    currentUser.inProgressTrip.trip.cancle = goToCanclationPage;
-    currentUser.inProgressTrip.trip.complete = goToCompletePage;
-
     print(
         "currentUser.inProgressTrip.trip.complete ${currentUser.inProgressTrip.trip.complete}");
     print("currentUser.inProgressTrip ${currentUser.inProgressTrip}");
     if (currentUser.inProgressTrip != null &&
         currentUser.inProgressTrip.polys != null &&
         currentUser.inProgressTrip.polys.length != 0) {
+      currentUser.inProgressTrip.trip.cancle = goToCanclationPage;
+      currentUser.inProgressTrip.trip.complete = goToCompletePage;
       closeDriverListerner();
       print(
           "currentUser.inProgressTrip.polys ${currentUser.inProgressTrip.polys}");
@@ -252,7 +251,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
 
   showDriverTripLocationOnMap(DocumentSnapshot doc) {
     drivers = [];
-
     LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
     drivers.add(new Driver.fromMap(doc.data)..setCords(newCords));
     showAllMarkers();
@@ -589,7 +587,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
             isDest: false);
         tripInProgress = true;
         notifyListeners();
-
         showBottomSheet(
             context: context,
             builder: (context) => Wrap(children: [
@@ -713,7 +710,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
               ),
             ));
     try {
-      sortDriverByShortestDistance(_pickup ?? _currentLocation);
       Map<String, dynamic> eTA =
           await calculateETA(_pickup ?? _currentLocation, _destination);
       trip = new Trip(
@@ -728,6 +724,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
           destinationAddress: destinationAddress,
           nubmersOfDrivers: drivers.length,
           amount: (eTA['distance']["value"] * Config.pricePerKilo / 1000));
+      sortDriverByShortestDistance(_pickup ?? _currentLocation, trip.amount);
       Navigator.pop(context);
       showBottomSheet(
           context: context,

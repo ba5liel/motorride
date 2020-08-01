@@ -9,6 +9,7 @@ class Driver {
   final String phone;
   final String photo;
   final double rating;
+  final double credit;
   LatLng cords;
 
   Driver(
@@ -17,6 +18,7 @@ class Driver {
       this.phone,
       this.targa,
       this.photo,
+      this.credit,
       this.rating});
   factory Driver.fromMap(Map<String, dynamic> json) => new Driver(
       userID: json["userID"],
@@ -24,6 +26,7 @@ class Driver {
       phone: json["phone"],
       targa: json["targa"],
       rating: json["rating"],
+      credit: json["credit"],
       photo: json["photo"]);
   Map<String, dynamic> toMap() => {
         "userID": userID,
@@ -31,6 +34,7 @@ class Driver {
         "phone": phone,
         "targa": targa,
         "rating": rating,
+        "credit": credit,
         "photo": photo
       };
 
