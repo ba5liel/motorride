@@ -98,12 +98,12 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   Future<void> loadPreviousTrip() async {
-    print(
-        "currentUser.inProgressTrip.trip.complete ${currentUser.inProgressTrip.trip.complete}");
-    print("currentUser.inProgressTrip ${currentUser.inProgressTrip}");
     if (currentUser.inProgressTrip != null &&
         currentUser.inProgressTrip.polys != null &&
         currentUser.inProgressTrip.polys.length != 0) {
+      print(
+          "currentUser.inProgressTrip.trip.complete ${currentUser.inProgressTrip.trip.complete}");
+      print("currentUser.inProgressTrip ${currentUser.inProgressTrip}");
       currentUser.inProgressTrip.trip.cancle = goToCanclationPage;
       currentUser.inProgressTrip.trip.complete = goToCompletePage;
       closeDriverListerner();

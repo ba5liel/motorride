@@ -26,7 +26,7 @@ class Driver {
       phone: json["phone"],
       targa: json["targa"],
       rating: json["rating"],
-      credit: json["credit"],
+      credit: json["credit"]?.toDouble(),
       photo: json["photo"]);
   Map<String, dynamic> toMap() => {
         "userID": userID,

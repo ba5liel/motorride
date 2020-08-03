@@ -36,26 +36,29 @@ class TripBloc {
         .listen((event) async {
       print("\n\nnew Request Event ${event.data}");
       if (event.data == null) return;
-      /*  Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
+      Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
         _index++;
         if (_index >= _driversWithCredit.length) {
           requestResponseStream.cancel();
+          timer.cancel();
           return denied();
         }
-        await newRequest
-            .setData({"driverID": _driversWithCredit[_index].userID, "tip": trip.toMap()});
-      }); */
+        await newRequest.setData({
+          "driverID": _driversWithCredit[_index].userID,
+          "tip": trip.toMap()
+        });
+      });
       if (event.data["accepted"] == null) return;
       if (event.data["accepted"]) {
         requestResponseStream.cancel();
-        //timeout.cancel();
+        timeout.cancel();
         print("_driversWithCredit[0] ${_driversWithCredit[0]}");
         accepted(th..setPloys(event.data["polys"]));
         return;
       }
       if (_driversWithCredit.length == _index + 1) {
         requestResponseStream.cancel();
-        //timeout.cancel();
+        timeout.cancel();
         return denied();
       }
       if (!event.data["accepted"]) {

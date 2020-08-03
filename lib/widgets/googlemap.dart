@@ -4,6 +4,8 @@ import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/bloc/map_bloc.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/services/calls_and_messages_service.dart';
+import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/widgets/fogeffect.dart';
 import 'package:motorride/widgets/setmarketcenter.dart';
 import 'package:motorride/widgets/searchbar.dart';
@@ -37,7 +39,7 @@ class AllStacks extends StatelessWidget {
 }
 
 class MapBackground extends StatelessWidget {
-  const MapBackground({
+  MapBackground({
     Key key,
   }) : super(key: key);
 
@@ -128,24 +130,30 @@ class ChooseOnMap extends StatelessWidget {
 }
 
 class SosAndMyLocationBtn extends StatelessWidget {
-  const SosAndMyLocationBtn({
+  SosAndMyLocationBtn({
     Key key,
   }) : super(key: key);
+  final CallsAndMessagesService _service = locator<CallsAndMessagesService>();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100), color: Colors.red),
-          child: Center(
-            child: Text(
-              "SOS",
-              style: TextStyle(fontSize: 18, color: Colors.white),
+        GestureDetector(
+          onTap: () {
+            _service.call("911");
+          },
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100), color: Colors.red),
+            child: Center(
+              child: Text(
+                "SOS",
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
             ),
           ),
         ),

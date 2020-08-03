@@ -43,7 +43,7 @@ class User {
         "inProgressTrip":
             inProgressTrip != null ? inProgressTrip.toMap() : null,
         "tripHistories": tripHistories != null && tripHistories.length != 1
-            ? tripHistories.map((e) => e.toMap()).toList()
+            ? tripHistories.map((e) => e?.toMap()).toList()
             : [],
       };
   Map<String, dynamic> toMapCompact() => {
