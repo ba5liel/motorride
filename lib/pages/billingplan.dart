@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:motorride/config/configs.dart';
 import 'package:motorride/constants/theme.dart';
+import 'package:motorride/services/service_locator.dart';
 
 class BillingPlanPage extends StatelessWidget {
-  const BillingPlanPage({Key key}) : super(key: key);
-
+  BillingPlanPage({Key key}) : super(key: key);
+  final Config _config = locator<Config>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +95,7 @@ class BillingPlanPage extends StatelessWidget {
                               children: <InlineSpan>[
                                 TextSpan(
                                     style: TextStyle(color: Colors.green),
-                                    text: "${Config.pricePerKilo} Br")
+                                    text: "${_config.pricePerKilo} Br")
                               ])),
                         ),
                         Padding(
@@ -104,7 +105,7 @@ class BillingPlanPage extends StatelessWidget {
                               children: <InlineSpan>[
                                 TextSpan(
                                     style: TextStyle(color: Colors.green),
-                                    text: "${Config.initialPrice} Br")
+                                    text: "${_config.initialPrice} Br")
                               ])),
                         ),
                       ],

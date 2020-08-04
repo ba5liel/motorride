@@ -66,6 +66,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   BitmapDescriptor pickupIcon;
   bool tripInProgress = false;
   final FirebaseMessaging _fcm = locator<FirebaseMessaging>();
+  final Config _config = locator<Config>();
 
   wsp.GoogleMapsPlaces _places =
       new wsp.GoogleMapsPlaces(apiKey: Config.googleMapApiKey);
@@ -756,7 +757,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
           pickupAddress: pickupAddress ?? address,
           destinationAddress: destinationAddress,
           nubmersOfDrivers: drivers.length,
-          amount: (eTA['distance']["value"] * Config.pricePerKilo / 1000));
+          amount: (eTA['distance']["value"] * _config.pricePerKilo / 1000) +
+              _config.initialPrice);
       sortDriverByShortestDistance(_pickup ?? _currentLocation, trip.amount);
       Navigator.pop(context);
       showBottomSheet(

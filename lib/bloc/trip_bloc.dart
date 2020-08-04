@@ -7,6 +7,7 @@ import 'package:motorride/modals/driver.dart';
 import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/triphistory.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/util/formulas.dart';
 
 class TripBloc {
@@ -14,6 +15,8 @@ class TripBloc {
   String requestid;
   DocumentReference newRequest;
   List _driversWithCredit = [];
+  final Config _config = locator<Config>();
+
   StreamSubscription<DocumentSnapshot> requestResponseStream;
   Future<void> request(Trip trip, Function(TripHistory) accepted,
       Function denied, Function(TripHistory) arrived) async {
@@ -80,7 +83,7 @@ class TripBloc {
     _driversWithCredit = drivers
         .where((element) =>
             element.credit != null &&
-            element.credit > (amount * Config.orderFeeOrder))
+            element.credit > (amount * _config.orderFeeOrder))
         .toList();
   }
 
