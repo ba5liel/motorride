@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -15,6 +16,7 @@ import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/triphistory.dart';
 import 'package:motorride/modals/user.dart';
 import 'package:motorride/pages/completepage.dart';
+import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/util/alerts.dart';
 import 'package:motorride/util/formulas.dart';
 import 'package:google_maps_webservice/places.dart' as wsp;
@@ -63,6 +65,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   BitmapDescriptor destIcon;
   BitmapDescriptor pickupIcon;
   bool tripInProgress = false;
+  final FirebaseMessaging _fcm = locator<FirebaseMessaging>();
+
   wsp.GoogleMapsPlaces _places =
       new wsp.GoogleMapsPlaces(apiKey: Config.googleMapApiKey);
 
@@ -80,6 +84,35 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     //listen for my location change
     sendLocation(currentUser.userID, _currentLocation, context);
     await listenToLocationChange();
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: ListTile(
+              title: Text(message['notification']['title']),
+              subtitle: Text(message['notification']['body']),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Ok'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+        );
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        // TODO optional
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        // TODO optional
+      },
+    );
+    _fcm.subscribeToTopic("announcement");
     // listen to rooms
     if (currentUser.inProgressTrip == null ||
         currentUser.inProgressTrip.polys == null ||
