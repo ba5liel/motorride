@@ -239,6 +239,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
                   preCenter.longitude) >
               0.05) {
         try {
+          preCenter = _currentLocation;
           await sendLocation(currentUser.userID, _currentLocation, context);
           address = (await _geolocator.placemarkFromCoordinates(
                   _currentLocation.latitude, _currentLocation.longitude))[0]
@@ -251,7 +252,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
           Alerts.showSnackBar(context, "No Internet Connection!");
         }
       }
-      preCenter = _currentLocation;
     });
   }
 
