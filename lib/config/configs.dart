@@ -2,7 +2,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class Config {
   RemoteConfig remoteConfig;
-  void init() async {
+  Future init() async {
     remoteConfig = await RemoteConfig.instance;
 
     // Enable developer mode to relax fetch throttling

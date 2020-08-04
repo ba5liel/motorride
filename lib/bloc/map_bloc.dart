@@ -77,7 +77,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   void init() async {
-    print("MapBloc Initalized");
+    await _config.init();
+    print("MapBloc Initalized ${_config.initialPrice}");
     preCenter = LatLng(9.0336617, 38.7512801);
     await initializeIcons();
     await initializeCurrentLocation();

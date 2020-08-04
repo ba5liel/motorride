@@ -6,11 +6,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motorride/config/configs.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/util/alerts.dart';
 
 class NodeServer {
-  StreamController<List> roomController =
-      new StreamController<List>();
+  StreamController<List> roomController = new StreamController<List>();
+  final Config _config = locator<Config>();
 
   Dio dio = new Dio();
   List rooms;
@@ -20,7 +21,7 @@ class NodeServer {
     print(cord);
     print("send location called\n\n\n\n\n");
     try {
-      Response res = await dio.post("${Config.baseUrl}/getallrooms",
+      Response res = await dio.post("${_config.baseUrl}/getallrooms",
           data: {
             "lat": cord.latitude.toString(),
             "lng": cord.longitude.toString()

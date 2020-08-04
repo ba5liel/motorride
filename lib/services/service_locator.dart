@@ -8,5 +8,5 @@ GetIt locator = GetIt();
 void setupLocator() {
   locator.registerSingleton(CallsAndMessagesService());
   locator.registerSingleton(FirebaseMessaging());
-  locator.registerSingleton(Config()..init());
+  locator.registerSingleton(Config());
 }

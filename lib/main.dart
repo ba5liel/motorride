@@ -9,6 +9,7 @@ import 'modals/user.dart';
 
 void main() {
   setupLocator();
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
 
