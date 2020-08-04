@@ -112,7 +112,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
         // TODO optional
       },
     );
-    _fcm.subscribeToTopic("announcement");
+    _fcm.subscribeToTopic("announcementuser");
     // listen to rooms
     if (currentUser.inProgressTrip == null ||
         currentUser.inProgressTrip.polys == null ||

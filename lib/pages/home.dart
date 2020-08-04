@@ -17,7 +17,9 @@ class HomePage extends StatelessWidget {
       backgroundColor: Color(0xfff7f8fc),
       body: Stack(
         children: <Widget>[
-          MyGoogleMap(auth: auth,),
+          MyGoogleMap(
+            auth: auth,
+          ),
         ],
       ),
       drawer: Drawer(
@@ -30,11 +32,16 @@ class HomePage extends StatelessWidget {
                 child: new DrawerHeader(
                     child: Column(
                   children: <Widget>[
-                    new Icon(
-                      Icons.account_circle,
-                      size: 80.0,
-                      color: Colors.white,
-                    ),
+                    (currentUser.phone == null)
+                        ? new Icon(
+                            Icons.account_circle,
+                            size: 80.0,
+                            color: Colors.white,
+                          )
+                        : CircleAvatar(
+                            radius: 40,
+                            backgroundImage: NetworkImage(currentUser.photo),
+                          ),
                     SizedBox(
                       height: 20,
                     ),
@@ -66,7 +73,7 @@ class HomePage extends StatelessWidget {
                         style: TextStyle(color: Colors.white30),
                       ),
                       onTap: () {
-                         Navigator.of(context).push(
+                        Navigator.of(context).push(
                             MaterialPageRoute(builder: (BuildContext context) {
                           return InProgressPage();
                         }));
