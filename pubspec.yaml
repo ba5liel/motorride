@@ -44,12 +44,18 @@ dependencies:
   # The following adds URI Launcher to the application
   url_launcher: ^5.5.0
   get_it: ^1.0.3+2
+  firebase_storage: 3.0.4
+  image_cropper: 1.0.2
+  image_picker: 0.6.0+17
+  firebase_messaging: ^6.0.16
+  flutter_local_notifications: ^1.4.4+2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: "^0.7.3"
-
+  intl: any
+  
 flutter_icons:
   android: "launcher_icon"
   ios: true

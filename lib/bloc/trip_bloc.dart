@@ -36,11 +36,10 @@ class TripBloc {
         .listen((event) async {
       print("\n\nnew Request Event ${event.data}");
       if (event.data == null) return;
-      Timer timeout = Timer.periodic(Config.requestRideTimeOut, (timer) async {
+      Timer timeout = Timer(Config.requestRideTimeOut, () async {
         _index++;
         if (_index >= _driversWithCredit.length) {
           requestResponseStream.cancel();
-          timer.cancel();
           return denied();
         }
         await newRequest.setData({

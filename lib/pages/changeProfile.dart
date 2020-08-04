@@ -1,4 +1,10 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
@@ -89,8 +95,9 @@ class ChangeProfile extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
+                          ChangeProfilePicture(),
                           SizedBox(
-                            height: 70,
+                            height: 15,
                           ),
                           if (currentUser.phone == null)
                             Text("Phone Number is not set :/ Set it up"),
@@ -217,5 +224,169 @@ class ChangeProfile extends StatelessWidget {
             ),
           ),
         ));
+  }
+}
+
+class ChangeProfilePicture extends StatefulWidget {
+  const ChangeProfilePicture({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _ChangeProfilePictureState createState() => _ChangeProfilePictureState();
+}
+
+class _ChangeProfilePictureState extends State<ChangeProfilePicture> {
+  File _imageFile;
+
+  /// Cropper plugin
+  Future<void> _cropImage() async {
+    File cropped = await ImageCropper.cropImage(
+        sourcePath: _imageFile.path,
+        // ratioX: 1.0,
+        // ratioY: 1.0,
+        maxWidth: 512,
+        maxHeight: 512,
+        toolbarColor: Colors.deepOrangeAccent,
+        toolbarWidgetColor: Colors.white,
+        toolbarTitle: 'Crop It');
+
+    setState(() {
+      _imageFile = cropped ?? _imageFile;
+    });
+  }
+
+  /// Select an image via gallery or camera
+  Future<void> _pickImage(ImageSource source) async {
+    File selected = await ImagePicker.pickImage(source: source);
+
+    setState(() {
+      _imageFile = selected;
+    });
+  }
+
+  final FirebaseStorage _storage =
+      FirebaseStorage(storageBucket: 'gs://acquired-rite-283713.appspot.com');
+
+  StorageUploadTask _uploadTask;
+
+  /// Starts an upload task
+  void _startUpload() {
+    /// Unique file name for the file
+    String filePath = 'images/${currentUser.userID}.png';
+
+    setState(() {
+      _uploadTask = _storage.ref().child(filePath).putFile(_imageFile);
+    });
+  }
+
+  /// Remove image
+  void _clear() {
+    setState(() => _imageFile = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Container(
+          decoration: MyTheme.avatarDecoration,
+          child: CircleAvatar(
+            radius: 40,
+            backgroundImage: (_imageFile != null)
+                ? FileImage(_imageFile)
+                : currentUser.photo != null
+                    ? NetworkImage(currentUser.photo)
+                    : AssetImage("assets/images/user.png"),
+          ),
+        ),
+        Column(children: <Widget>[
+          Row(
+            children: <Widget>[
+              IconButton(
+                  icon: Icon(Icons.photo_camera),
+                  onPressed: () => _pickImage(ImageSource.camera)),
+              IconButton(
+                  icon: Icon(Icons.photo_library),
+                  onPressed: () => _pickImage(ImageSource.gallery)),
+              if (_imageFile != null)
+                IconButton(
+                  icon: Icon(Icons.crop),
+                  onPressed: _cropImage,
+                ),
+              if (_imageFile != null)
+                IconButton(
+                  icon: Icon(Icons.refresh),
+                  onPressed: _clear,
+                ),
+            ],
+          ),
+          if (_imageFile != null) ...[
+            if (_uploadTask != null)
+
+              /// Manage the task state and event subscription with a StreamBuilder
+              StreamBuilder<StorageTaskEvent>(
+                  stream: _uploadTask.events,
+                  builder: (_, snapshot) {
+                    var event = snapshot?.data?.snapshot;
+
+                    if (_uploadTask.isComplete) {
+                      _storage
+                          .ref()
+                          .child('images/${currentUser.userID}.png')
+                          .getDownloadURL()
+                          .then((value) {
+                        print("\n\n\nDownloadble URL $value");
+                        currentUser.setPhoto(value);
+                        Firestore.instance
+                            .collection("drivers")
+                            .document(currentUser.userID)
+                            .updateData({"photo": value});
+                      });
+                    }
+                    double progressPercent = event != null
+                        ? event.bytesTransferred / event.totalByteCount
+                        : 0;
+                    print(progressPercent);
+                    return Container(
+                      //height: 10,
+
+                      child: Column(
+                        children: [
+                          if (_uploadTask.isComplete) Text('🎉🎉🎉'),
+                          if (_uploadTask.isPaused)
+                            FlatButton(
+                              child: Icon(Icons.play_arrow),
+                              onPressed: _uploadTask.resume,
+                            ),
+
+                          if (_uploadTask.isInProgress)
+                            FlatButton(
+                              child: Icon(Icons.pause),
+                              onPressed: _uploadTask.pause,
+                            ),
+
+                          // Progress bar
+                          Container(
+                              width: 100,
+                              height: 10,
+                              child: LinearProgressIndicator(
+                                  value: progressPercent)),
+                          Text(
+                              '${(progressPercent * 100).toStringAsFixed(2)} % '),
+                        ],
+                      ),
+                    );
+                  }),
+            if (_uploadTask == null)
+              FlatButton.icon(
+                label: Text('Upload image'),
+                icon: Icon(Icons.cloud_upload),
+                onPressed: _startUpload,
+              ),
+          ],
+        ]),
+      ],
+    );
   }
 }

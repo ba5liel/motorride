@@ -125,6 +125,7 @@ class Authentication {
                       color: Colors.blue,
                       onPressed: () async {
                         try {
+                          showDialog(context: context, child: LoadingWidget());
                           final code = _codeController.text.trim();
                           AuthCredential credential =
                               PhoneAuthProvider.getCredential(
@@ -238,7 +239,6 @@ class Authentication {
 
   Future<FirebaseUser> _handleSignIn(context) async {
     FirebaseUser user;
-
     try {
       bool isSignedIn = await _googleSignIn.isSignedIn();
       if (isSignedIn) {
