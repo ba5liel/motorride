@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motorride/modals/trip.dart';
+import 'package:motorride/widgets/amountdisplaywidget.dart';
 import 'package:motorride/widgets/mybottomsheet.dart';
 import 'package:motorride/widgets/requestloadingbottomsheet.dart';
 
@@ -183,30 +184,10 @@ class StartTrip extends StatelessWidget {
                         ),
                       ))),
               SizedBox(
-                width: 15,
+                width: 5,
               ),
-              Container(
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(50),
-                    color: Color(0xffffff)),
-                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                child: Row(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Icon(Icons.attach_money),
-                    SizedBox(width: 3),
-                    Text(
-                      "${trip.amount} br",
-                      style: TextStyle(),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                  ],
-                ),
+              AmountDisplayWidget(
+                trip: trip,
               )
             ],
           )

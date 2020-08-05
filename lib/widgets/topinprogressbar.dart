@@ -3,6 +3,7 @@ import 'package:motorride/modals/trip.dart';
 import 'package:motorride/modals/user.dart';
 import 'package:motorride/pages/profilepage.dart';
 import 'package:motorride/util/widgetutils.dart';
+import 'package:motorride/widgets/amountdisplaywidget.dart';
 import 'package:motorride/widgets/topnavbar.dart';
 
 class TopInProgressBar extends StatelessWidget {
@@ -79,22 +80,9 @@ class TopInProgressBar extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(50),
-                    color: Color(0xffffff)),
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.attach_money),
-                    SizedBox(width: 3),
-                    Text(
-                      "${trip.amount} br",
-                      style: TextStyle(),
-                    ),
-                  ],
-                ),
+              AmountDisplayWidget(
+                trip: trip,
+                short: true,
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -167,13 +167,14 @@ class ChangeProfile extends StatelessWidget {
                               if (formKey.currentState.validate())
                                 try {
                                   auth.updateUser(
+                                      context,
                                       currentUser
                                         ..setName(firstNameController.text,
                                             lastNameController.text)
                                         ..setPhone(phoneController.text ??
                                             currentUser.phone)
                                         ..setPhoto(currentUser.photo),
-                                      saveTocloud: true, callBack: () {
+                                      saveTocloud: true, callBack: (context) {
                                     Navigator.pushReplacement(context,
                                         MaterialPageRoute(
                                             builder: (BuildContext context) {

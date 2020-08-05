@@ -169,7 +169,7 @@ class Authentication {
     }
   }
 
-  Future updateUser(User newUser,
+  Future updateUser(BuildContext context, User newUser,
       {bool saveTocloud = false, Function callBack}) async {
     if (saveTocloud)
       Firestore.instance
@@ -178,7 +178,7 @@ class Authentication {
           .setData(currentUser.toMapCompact());
     currentUser = newUser;
     await _setUser(currentUser).then((value) {
-      if (callBack != null) callBack();
+      if (callBack != null) callBack(context);
     });
   }
 

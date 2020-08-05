@@ -5,11 +5,13 @@ import 'package:motorride/services/service_locator.dart';
 import 'package:motorride/util/formatter.dart';
 
 class AmountDisplayWidget extends StatelessWidget {
-  AmountDisplayWidget({Key key, @required this.trip, this.inverse = false})
+  AmountDisplayWidget(
+      {Key key, @required this.trip, this.inverse = false, this.short = false})
       : super(key: key);
 
   final Trip trip;
   final bool inverse;
+  final bool short;
   final Config _config = locator<Config>();
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,9 @@ class AmountDisplayWidget extends StatelessWidget {
               ),
               SizedBox(width: 3),
               Text(
-                "${Formater().oCcy.format(trip.amount)} br + ${_config.initialPrice} br",
+                short
+                    ? "${Formater().oCcy.format(trip.amount + _config.initialPrice)} br"
+                    : "${Formater().oCcy.format(trip.amount)} br + ${_config.initialPrice} br",
                 style: TextStyle(color: inverse ? Colors.white : Colors.black),
               ),
               SizedBox(

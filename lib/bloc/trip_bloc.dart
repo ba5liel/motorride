@@ -16,12 +16,16 @@ class TripBloc {
   DocumentReference newRequest;
   List _driversWithCredit = [];
   final Config _config = locator<Config>();
-
+  Timer timeout;
   StreamSubscription<DocumentSnapshot> requestResponseStream;
   Future<void> request(Trip trip, Function(TripHistory) accepted,
       Function denied, Function(TripHistory) arrived) async {
 //get the closest driver
 //write a request to the database
+    if (_driversWithCredit.length == 0) {
+
+      return denied();
+    }
     int _index = 0;
     newRequest = Firestore.instance.collection("requests").document();
     requestid = newRequest.documentID;
@@ -39,20 +43,25 @@ class TripBloc {
         .listen((event) async {
       print("\n\nnew Request Event ${event.data}");
       if (event.data == null) return;
-      Timer timeout = Timer(Config.requestRideTimeOut, () async {
-        _index++;
-        if (_index >= _driversWithCredit.length) {
-          requestResponseStream.cancel();
-          return denied();
-        }
-        await newRequest.setData({
-          "driverID": _driversWithCredit[_index].userID,
-          "tip": trip.toMap()
+      if (timeout == null || !timeout.isActive) {
+        print("Timeout setted \n\n\n\n");
+        timeout = Timer(Config.requestRideTimeOut, () async {
+          _index++;
+          if (_index >= _driversWithCredit.length) {
+            requestResponseStream.cancel();
+            return denied();
+          }
+          await newRequest.setData({
+            "driverID": _driversWithCredit[_index].userID,
+            "tip": trip.toMap()
+          });
         });
-      });
+      }
       if (event.data["accepted"] == null) return;
       if (event.data["accepted"]) {
         requestResponseStream.cancel();
+        print("Timeout cancled \n\n\n\n");
+
         timeout.cancel();
         print("_driversWithCredit[0] ${_driversWithCredit[0]}");
         accepted(th..setPloys(event.data["polys"]));

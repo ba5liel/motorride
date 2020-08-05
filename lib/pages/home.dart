@@ -32,16 +32,17 @@ class HomePage extends StatelessWidget {
                 child: new DrawerHeader(
                     child: Column(
                   children: <Widget>[
-                    (currentUser.phone == null)
-                        ? new Icon(
-                            Icons.account_circle,
-                            size: 80.0,
-                            color: Colors.white,
-                          )
-                        : CircleAvatar(
-                            radius: 40,
-                            backgroundImage: NetworkImage(currentUser.photo),
-                          ),
+                    if (currentUser.photo == null)
+                      new Icon(
+                        Icons.account_circle,
+                        size: 80.0,
+                        color: Colors.white,
+                      ),
+                    if (currentUser.photo != null)
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage: NetworkImage(currentUser.photo),
+                      ),
                     SizedBox(
                       height: 20,
                     ),
@@ -52,11 +53,6 @@ class HomePage extends StatelessWidget {
                   ],
                 )),
                 decoration: BoxDecoration(
-                    //image: DecorationImage(
-                    //image: AssetImage('assets/images/virus2.png'),
-                    //colorFilter: ColorFilter.linearToSrgbGamma(),
-                    //),
-
                     color: MyTheme.secondaryColor),
               ),
               Container(

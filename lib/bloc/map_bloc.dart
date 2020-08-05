@@ -614,7 +614,9 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     closeRoomChangeListener();
     closeDriverListerner();
     await request(trip, (TripHistory th) {
-      auth.updateUser(currentUser..setInProgressTrip(th), callBack: () {
+      
+      auth.updateUser(context, currentUser..setInProgressTrip(th),
+          callBack: (context) {
         listenToTripDriver(showDriverTripLocationOnMap);
         Navigator.pop(context);
         showRoute(
@@ -636,16 +638,19 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     }, () async {
       closeRoomChangeListener();
       roomChangeSubscription.resume();
-      await auth.updateUser(currentUser
-        ..addHistory(currentUser.inProgressTrip)
-        ..setInProgressTrip(null));
+      await auth.updateUser(
+          context,
+          currentUser
+            ..addHistory(currentUser.inProgressTrip)
+            ..setInProgressTrip(null));
       tripInProgress = false;
       Navigator.pop(context);
       Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
           "Sorry We can not provide our service at this time please try again later");
       notifyListeners();
     }, (TripHistory th) {
-      auth.updateUser(currentUser..setInProgressTrip(th), callBack: () {
+      auth.updateUser(context, currentUser..setInProgressTrip(th),
+          callBack: () {
         showRoute(
             currentUser.inProgressTrip.polys, trip.driver.cords, trip.pickup,
             isDest: false);
@@ -672,9 +677,11 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
         MaterialPageRoute(
             builder: (BuildContext context) => CanclePage(
                   cancle: (String why) async {
-                    await auth.updateUser(currentUser
-                      ..addHistory(currentUser.inProgressTrip)
-                      ..setInProgressTrip(null));
+                    await auth.updateUser(
+                        context,
+                        currentUser
+                          ..addHistory(currentUser.inProgressTrip)
+                          ..setInProgressTrip(null));
                     tripInProgress = false;
                     cancleRoute();
                     Navigator.pop(context);
@@ -687,10 +694,13 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   void goToCompletePage(BuildContext context) {
-    auth.updateUser(currentUser
-      ..addHistory(currentUser.inProgressTrip..setComplete(true))
-      ..setInProgressTrip(null));
+    auth.updateUser(
+        context,
+        currentUser
+          ..addHistory(currentUser.inProgressTrip..setComplete(true))
+          ..setInProgressTrip(null));
     tripInProgress = false;
+
     cancleRoute();
     _markers = [];
     _addYouMarker();
