@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
+import 'package:motorride/util/formatter.dart';
 import 'package:motorride/widgets/ongoing.dart';
 import 'package:motorride/widgets/setting.dart';
 
 class ProfileBody extends StatelessWidget {
   ProfileBody({Key key}) : super(key: key);
-
-  final double totalEarining =
-      currentUser.tripHistories.fold(0, (p, c) => p + c.trip.amount);
-  final double totalTime =
-      currentUser.tripHistories.fold(0, (p, c) => p + c.trip.eTA) / 3600;
-  final double totalDistance =
-      currentUser.tripHistories.fold(0, (p, c) => p + c.trip.tripDistance) /
+  final double totalEarining = currentUser.tripHistories.length < 2
+      ? (currentUser.tripHistories[0].trip.amount)
+      : currentUser.tripHistories.fold(0, (p, c) => p + c.trip.amount);
+  final double totalTime = currentUser.tripHistories.length < 2
+      ? (currentUser.tripHistories[0].trip.eTA) / 3600
+      : currentUser.tripHistories.fold(0, (p, c) => p + c.trip.eTA) / 3600;
+  final double totalDistance = currentUser.tripHistories.length < 2
+      ? currentUser.tripHistories[0].trip.tripDistance
+      : currentUser.tripHistories.fold(0, (p, c) => p + c.trip.tripDistance) /
           1000;
   @override
   Widget build(BuildContext context) {
@@ -34,7 +37,7 @@ class ProfileBody extends StatelessWidget {
                         "Total Spent",
                         style: TextStyle(color: Colors.black45, fontSize: 13),
                       ),
-                      Text("\$ $totalEarining br",
+                      Text("\$ ${Formater().oCcy.format(totalEarining)} br",
                           style: TextStyle(
                               color: Colors.black,
                               fontSize: 22,
@@ -64,7 +67,8 @@ class ProfileBody extends StatelessWidget {
                           Text("Total Time online",
                               style: TextStyle(
                                   color: Colors.black45, fontSize: 13)),
-                          Text("$totalTime",
+                          Text(
+                              "${Formater().formatDatetime(Duration(seconds: totalTime.toInt()))}",
                               style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 13,
@@ -77,7 +81,7 @@ class ProfileBody extends StatelessWidget {
                           Text("Total Distance",
                               style: TextStyle(
                                   color: Colors.black45, fontSize: 13)),
-                          Text("$totalDistance",
+                          Text("${Formater().formatDistance(totalDistance)}",
                               style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 13,
@@ -88,7 +92,8 @@ class ProfileBody extends StatelessWidget {
                   ),
                 ],
               )),
-          if (currentUser.inProgressTrip != null) OnGoing(trip: currentUser.inProgressTrip.trip),
+          if (currentUser.inProgressTrip != null)
+            OnGoing(trip: currentUser.inProgressTrip.trip),
           SettingSection(),
         ],
       ),

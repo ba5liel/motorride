@@ -99,7 +99,8 @@ class BottomNavBar extends StatelessWidget {
               padding: EdgeInsets.all(10.0),
               child: Column(
                 children: <Widget>[
-                  if (context.select((MapBloc m) => m.destination) != null)
+                  if (context.select((MapBloc m) => m.destination) != null &&
+                      currentUser.inProgressTrip == null)
                     ShowConformationBtn(),
                   ChooseOnMap(),
                   SizedBox(
@@ -157,6 +158,60 @@ class SosAndMyLocationBtn extends StatelessWidget {
             ),
           ),
         ),
+        if (currentUser.inProgressTrip == null &&
+            context.select((MapBloc m) => m.pickup) == null)
+          GestureDetector(
+            onTap: () {
+              context.read<MapBloc>().choosePickUpLocationOnMap();
+            },
+            child: Container(
+                color: MyTheme.primaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
+                child: Center(
+                  child: Text("set pickup",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                )),
+          ),
+        if (currentUser.inProgressTrip == null &&
+            context.select((MapBloc m) => m.pickup) != null &&
+            context.select((MapBloc m) => m.destination) == null)
+          GestureDetector(
+            onTap: () {
+              context.read<MapBloc>().chooseDestinationLocationOnMap();
+            },
+            child: Container(
+                color: MyTheme.primaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
+                child: Center(
+                  child: Text("set Destination",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                )),
+          ),
+        if (currentUser.inProgressTrip != null)
+          GestureDetector(
+            onTap: () {
+              context.read<MapBloc>().goToCompletePage(context);
+            },
+            child: Container(
+                color: Color(0xff04a56d),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
+                child: Center(
+                  child: Text("Complete",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                )),
+          ),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,

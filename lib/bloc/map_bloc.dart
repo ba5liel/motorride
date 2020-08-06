@@ -43,6 +43,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   LatLng _currentLocation;
   LatLng _destination;
   LatLng get destination => _destination;
+  LatLng get pickup => _pickup;
   String destinationAddress;
   LatLng _pickup;
   PolylinePoints polylinePoints;
@@ -614,9 +615,10 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     closeRoomChangeListener();
     closeDriverListerner();
     await request(trip, (TripHistory th) {
-      
       auth.updateUser(context, currentUser..setInProgressTrip(th),
           callBack: (context) {
+        currentUser.inProgressTrip.trip.complete = goToCompletePage;
+
         listenToTripDriver(showDriverTripLocationOnMap);
         Navigator.pop(context);
         showRoute(

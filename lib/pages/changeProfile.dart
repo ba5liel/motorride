@@ -21,17 +21,21 @@ class ChangeProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    firstNameController.text = RegExp(r'^([A-z]+\s+)([A-z]+)$')
-        .allMatches(currentUser.name)
-        .toList()[0]
-        .group(1)
-        .trim();
+    firstNameController.text = currentUser.name == null
+        ? null
+        : RegExp(r'^([A-z]+\s+)([A-z]+)$')
+            .allMatches(currentUser.name)
+            .toList()[0]
+            .group(1)
+            .trim();
 
-    lastNameController.text = RegExp(r'^([A-z]+\s+)([A-z]+)$')
-        .allMatches(currentUser.name)
-        .toList()[0]
-        .group(2)
-        .trim();
+    lastNameController.text = currentUser.name == null
+        ? null
+        : RegExp(r'^([A-z]+\s+)([A-z]+)$')
+            .allMatches(currentUser.name)
+            .toList()[0]
+            .group(2)
+            .trim();
 
     return Scaffold(
         backgroundColor: MyTheme.bgColor,
@@ -310,18 +314,21 @@ class _ChangeProfilePictureState extends State<ChangeProfilePicture> {
               IconButton(
                   icon: Icon(Icons.photo_library),
                   onPressed: () => _pickImage(ImageSource.gallery)),
-              if (_imageFile != null)
+            ],
+          ),
+          if (_imageFile != null)
+            Row(
+              children: <Widget>[
                 IconButton(
                   icon: Icon(Icons.crop),
                   onPressed: _cropImage,
                 ),
-              if (_imageFile != null)
                 IconButton(
                   icon: Icon(Icons.refresh),
                   onPressed: _clear,
                 ),
-            ],
-          ),
+              ],
+            ),
           if (_imageFile != null) ...[
             if (_uploadTask != null)
 
@@ -381,7 +388,7 @@ class _ChangeProfilePictureState extends State<ChangeProfilePicture> {
                   }),
             if (_uploadTask == null)
               FlatButton.icon(
-                label: Text('Upload image'),
+                label: Text('Upload'),
                 icon: Icon(Icons.cloud_upload),
                 onPressed: _startUpload,
               ),

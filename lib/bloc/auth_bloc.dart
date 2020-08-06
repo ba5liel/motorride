@@ -54,10 +54,10 @@ class Authentication {
   }
 
   Future<User> getUser() async {
+    print("get User called");
     currentUser =
         User.fromMap(json.decode((await getPref()).getString("user")));
-    print("Current user seted");
-    print(currentUser);
+    print("Current user seted ${currentUser.tripHistories}");
     return currentUser;
   }
 

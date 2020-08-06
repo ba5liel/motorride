@@ -35,7 +35,7 @@ class Trip {
       @required this.amount});
   factory Trip.fromMap(Map<String, dynamic> json) => new Trip(
         driver: Driver.fromMap(json["driver"]),
-        user: User.fromMap(json["user"]),
+        user: User.fromMapCompact(json["user"]),
         arravialETA: json["arravialETA"],
         eTA: json["eTA"],
         pickupAddress: json["pickupAddress"],

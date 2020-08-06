@@ -22,19 +22,21 @@ class TripHistory {
       this.phase,
       this.polys,
       this.trip});
-  factory TripHistory.fromMap(Map<String, dynamic> json) => new TripHistory(
-      tripID: json["tripID"],
-      cancled: json["cancled"],
-      accepted: json["accepted"],
-      active: json["active"],
-      completed: json["complete"],
-      driverID: json["driverID"],
-      phase: json["phase"] == null || json["phase"] == 0
-          ? TRIPPHASES.FROMLOCATIONTOPICKUP
-          : TRIPPHASES.FROMLOCATIONTODESTINATION,
-      userID: json["userID"],
-      polys: json["polys"],
-      trip: Trip.fromMap(json["trip"]));
+  factory TripHistory.fromMap(Map<String, dynamic> json) {
+    return new TripHistory(
+        tripID: json["tripID"],
+        cancled: json["cancled"],
+        accepted: json["accepted"],
+        active: json["active"],
+        completed: json["complete"],
+        driverID: json["driverID"],
+        phase: json["phase"] == null || json["phase"] == 0
+            ? TRIPPHASES.FROMLOCATIONTOPICKUP
+            : TRIPPHASES.FROMLOCATIONTODESTINATION,
+        userID: json["userID"],
+        polys: json["polys"],
+        trip: Trip.fromMap(json["trip"]));
+  }
   Map<String, dynamic> toMap() => {
         "tripID": tripID,
         "accepted": accepted,

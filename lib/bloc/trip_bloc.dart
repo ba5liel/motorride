@@ -23,7 +23,6 @@ class TripBloc {
 //get the closest driver
 //write a request to the database
     if (_driversWithCredit.length == 0) {
-
       return denied();
     }
     int _index = 0;
@@ -49,6 +48,8 @@ class TripBloc {
           _index++;
           if (_index >= _driversWithCredit.length) {
             requestResponseStream.cancel();
+            await newRequest
+                .updateData({"driverID": null, "trip": trip.toMap()});
             return denied();
           }
           await newRequest.setData({
@@ -58,10 +59,15 @@ class TripBloc {
         });
       }
       if (event.data["accepted"] == null) return;
+      if (event.data["phase"] == 1) {
+        arrived(th
+          ..setPloys(event.data["polys"])
+          ..setPhase(TRIPPHASES.FROMLOCATIONTODESTINATION));
+        return;
+      }
       if (event.data["accepted"]) {
         requestResponseStream.cancel();
         print("Timeout cancled \n\n\n\n");
-
         timeout.cancel();
         print("_driversWithCredit[0] ${_driversWithCredit[0]}");
         accepted(th..setPloys(event.data["polys"]));
@@ -70,6 +76,7 @@ class TripBloc {
       if (_driversWithCredit.length == _index + 1) {
         requestResponseStream.cancel();
         timeout.cancel();
+        await newRequest.updateData({"driverID": null, "trip": trip.toMap()});
         return denied();
       }
       if (!event.data["accepted"]) {
@@ -77,13 +84,8 @@ class TripBloc {
           "driverID": _driversWithCredit[_index].userID,
           "trip": trip.toMap()
         });
-        //timeout.cancel();
+        timeout.cancel();
         _index++;
-      }
-      if (event.data["phase"] == 1) {
-        arrived(th
-          ..setPloys(event.data["polys"])
-          ..setPhase(TRIPPHASES.FROMLOCATIONTODESTINATION));
       }
     });
   }

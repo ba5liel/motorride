@@ -15,12 +15,14 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xfff7f8fc),
-      body: Stack(
-        children: <Widget>[
-          MyGoogleMap(
-            auth: auth,
-          ),
-        ],
+      body: SafeArea(
+              child: Stack(
+          children: <Widget>[
+            MyGoogleMap(
+              auth: auth,
+            ),
+          ],
+        ),
       ),
       drawer: Drawer(
         child: Container(

@@ -38,8 +38,8 @@ class AmountDisplayWidget extends StatelessWidget {
               SizedBox(width: 3),
               Text(
                 short
-                    ? "${Formater().oCcy.format(trip.amount + _config.initialPrice)} br"
-                    : "${Formater().oCcy.format(trip.amount)} br + ${_config.initialPrice} br",
+                    ? "${Formater().oCcy.format(trip.amount)} br"
+                    : "${Formater().oCcy.format(trip.amount - _config.initialPrice)} br + ${_config.initialPrice} br",
                 style: TextStyle(color: inverse ? Colors.white : Colors.black),
               ),
               SizedBox(
