@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:motorride/modals/triphistory.dart';
 import 'package:motorride/pages/home.dart';
+import 'package:motorride/pages/verifycode.dart';
 import 'package:motorride/util/alerts.dart';
 import 'package:motorride/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,7 +25,6 @@ class Authentication {
     ],
   );
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final TextEditingController _codeController = new TextEditingController();
   FirebaseUser _user;
 
   Future<void> signOut() async {
@@ -104,29 +104,17 @@ class Authentication {
         },
         codeSent: (String verificationId, [int forceResendingToken]) {
           Navigator.pop(context);
-          showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text("Enter your code?"),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextField(
-                        controller: _codeController,
-                      ),
-                    ],
-                  ),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text("Confirm"),
-                      textColor: Colors.white,
-                      color: Colors.blue,
-                      onPressed: () async {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => new VerifyOTP(
+                          callback: (BuildContext context, String code) async {
+                        if (!RegExp(r'^([0-9]){4,8}$').hasMatch(code)) {
+                          Navigator.pop(context);
+                          return;
+                        }
+                        showDialog(context: context, child: LoadingWidget());
                         try {
-                          showDialog(context: context, child: LoadingWidget());
-                          final code = _codeController.text.trim();
                           AuthCredential credential =
                               PhoneAuthProvider.getCredential(
                                   verificationId: verificationId,
@@ -134,22 +122,19 @@ class Authentication {
 
                           AuthResult result =
                               await _auth.signInWithCredential(credential);
-
                           _user = result.user;
 
                           if (_user != null) {
-                            await _createUser(_user, phone, context);
+                            _createUser(_user, phone, context);
                           } else {
                             print("Error");
                           }
                         } catch (e) {
-                          print("Error $e");
+                          Alerts.showAlertDialog(context, "sign in failed",
+                              "Session Expried please try again");
+                          Navigator.pop(context);
                         }
-                      },
-                    )
-                  ],
-                );
-              });
+                      })));
         },
         codeAutoRetrievalTimeout: null);
     return _user != null;
