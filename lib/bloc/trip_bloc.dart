@@ -91,6 +91,7 @@ class TripBloc {
   }
 
   setDriversWithEnougCredit(double amount) {
+    print("\n\n_config.orderFeeOrder ${_config.orderFeeOrder}");
     _driversWithCredit = drivers
         .where((element) =>
             element.credit != null &&

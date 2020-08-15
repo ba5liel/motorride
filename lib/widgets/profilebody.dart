@@ -7,14 +7,14 @@ import 'package:motorride/widgets/setting.dart';
 
 class ProfileBody extends StatelessWidget {
   ProfileBody({Key key}) : super(key: key);
-  final double totalEarining = currentUser.tripHistories.length < 2
-      ? (currentUser.tripHistories[0].trip.amount)
+  final double totalEarining = currentUser.tripHistories.length < 1
+      ? 0
       : currentUser.tripHistories.fold(0, (p, c) => p + c.trip.amount);
-  final double totalTime = currentUser.tripHistories.length < 2
-      ? (currentUser.tripHistories[0].trip.eTA) / 3600
+  final double totalTime = currentUser.tripHistories.length < 1
+      ? 0
       : currentUser.tripHistories.fold(0, (p, c) => p + c.trip.eTA) / 3600;
-  final double totalDistance = currentUser.tripHistories.length < 2
-      ? currentUser.tripHistories[0].trip.tripDistance
+  final double totalDistance = currentUser.tripHistories.length < 1
+      ? 0
       : currentUser.tripHistories.fold(0, (p, c) => p + c.trip.tripDistance) /
           1000;
   @override

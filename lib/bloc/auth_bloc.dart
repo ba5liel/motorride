@@ -253,6 +253,7 @@ class Authentication {
         user = (await _auth.signInWithCredential(credential)).user;
       }
     } catch (e) {
+      print(e);
       Alerts.showSnackBar(context, "Sign in failed, Check Internet Connection");
     }
     return user;
