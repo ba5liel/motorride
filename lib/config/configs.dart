@@ -11,7 +11,12 @@ class Config {
       'initialPrice': 8.0,
       'pricePerKilo': 10.0,
       'orderFeeOrder': .10,
-      'baseUrl': "https://motorride.herokuapp.com",
+      'free': false,
+      'youtubechannel':
+          "www.youtube.com/channel/UCHw0GdCl8YWzFSqreOIOckw?view_as=subscriber",
+      'telegrambot': "t.me/Motorridebot",
+      'contact2': "+25154920304",
+      'contact1': "+25154920304",
     });
     try {
       // Using default duration to force fetching from remote server.
@@ -27,6 +32,10 @@ class Config {
   }
 
   String get baseUrl => remoteConfig.getString("baseUrl");
+  String get youtubechannel => remoteConfig.getString("youtubechannel");
+  String get telegrambot => remoteConfig.getString("telegrambot");
+  String get contact1 => remoteConfig.getString("contact1");
+  String get contact2 => remoteConfig.getString("contact2");
   static String googleMapApiKey = "AIzaSyAGbfIielNV8K0E1-mh7bkjTmkMOKNf_fs";
   static Duration requestRideTimeOut = Duration(minutes: 1);
   double get pricePerKilo => remoteConfig.getDouble('pricePerKilo');
