@@ -54,7 +54,6 @@ class MapBackground extends StatelessWidget {
           : GoogleMap(
               //myLocationEnabled: true,
               mapType: MapType.normal,
-
               onCameraMove: (CameraPosition position) {
                 context.read<MapBloc>().setCameraCenter(position.target);
               },
@@ -160,57 +159,75 @@ class SosAndMyLocationBtn extends StatelessWidget {
         ),
         if (currentUser.inProgressTrip == null &&
             context.select((MapBloc m) => m.pickup) == null)
-          GestureDetector(
-            onTap: () {
-              context.read<MapBloc>().choosePickUpLocationOnMap();
-            },
-            child: Container(
-                color: MyTheme.primaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
-                child: Center(
-                  child: Text("set pickup",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold)),
-                )),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                context.read<MapBloc>().choosePickUpLocationOnMap();
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      color: MyTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(4.0)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0, vertical: 20),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0),
+                  child: Center(
+                    child: Text("set pickup",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                  )),
+            ),
           ),
         if (currentUser.inProgressTrip == null &&
             context.select((MapBloc m) => m.pickup) != null &&
             context.select((MapBloc m) => m.destination) == null)
-          GestureDetector(
-            onTap: () {
-              context.read<MapBloc>().chooseDestinationLocationOnMap();
-            },
-            child: Container(
-                color: MyTheme.primaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
-                child: Center(
-                  child: Text("set Destination",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold)),
-                )),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                context.read<MapBloc>().chooseDestinationLocationOnMap();
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      color: MyTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(4.0)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0, vertical: 20),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0),
+                  child: Center(
+                    child: Text("set Destination",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                  )),
+            ),
           ),
         if (currentUser.inProgressTrip != null)
-          GestureDetector(
-            onTap: () {
-              context.read<MapBloc>().goToCompletePage(context);
-            },
-            child: Container(
-                color: Color(0xff04a56d),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
-                child: Center(
-                  child: Text("Complete",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold)),
-                )),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                context.read<MapBloc>().goToCompletePage(context);
+              },
+              child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(4.0)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 30.0, vertical: 20),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0),
+                  child: Center(
+                    child: Text("Complete",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold)),
+                  )),
+            ),
           ),
         Container(
           decoration: BoxDecoration(

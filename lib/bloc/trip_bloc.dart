@@ -95,7 +95,7 @@ class TripBloc {
     _driversWithCredit = drivers
         .where((element) =>
             element.credit != null &&
-            element.credit > (amount * _config.orderFeeOrder))
+            element.credit >= (amount * _config.orderFeeOrder))
         .toList();
   }
 

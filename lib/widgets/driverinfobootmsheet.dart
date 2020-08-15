@@ -8,7 +8,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
   DriverInfoBottomSheet(
       {Key key, @required this.trip, @required this.cancleTrip})
       : super(key: key);
-  final Function cancleTrip;
+  final Function(BuildContext) cancleTrip;
   final Trip trip;
   final CallsAndMessagesService _service = locator<CallsAndMessagesService>();
 
@@ -168,7 +168,9 @@ class DriverInfoBottomSheet extends StatelessWidget {
                 ),
                 FlatButton(
                   onPressed: () {
-                    cancleTrip();
+                    print("cancleTrip\n\n");
+                    cancleTrip(context);
+                    print("cancleTrip 2\n\n");
                     Navigator.pop(context);
                   },
                   child: Container(

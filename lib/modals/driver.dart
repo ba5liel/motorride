@@ -44,6 +44,6 @@ class Driver {
 
   @override
   String toString() {
-    return "DriverID $userID Name: $name, phone: $phone";
+    return "DriverID $userID Name: $name, phone: $phone, credit: $credit";
   }
 }

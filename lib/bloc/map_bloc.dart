@@ -631,7 +631,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
             builder: (context) => Wrap(children: [
                   DriverInfoBottomSheet(
                     trip: currentUser.inProgressTrip.trip,
-                    cancleTrip: () {
+                    cancleTrip: (BuildContext context) {
+                      print("cancleTrip");
                       goToCanclationPage(context);
                     },
                   )
@@ -674,6 +675,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   void goToCanclationPage(BuildContext context) {
+    print("goToCanclationPage");
     Navigator.push(
         context,
         MaterialPageRoute(
