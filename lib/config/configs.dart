@@ -12,6 +12,7 @@ class Config {
       'pricePerKilo': 10.0,
       'orderFeeOrder': .10,
       'free': false,
+      'promot': false,
       'youtubechannel':
           "www.youtube.com/channel/UCHw0GdCl8YWzFSqreOIOckw?view_as=subscriber",
       'telegrambot': "t.me/Motorridebot",
@@ -41,5 +42,6 @@ class Config {
   double get pricePerKilo => remoteConfig.getDouble('pricePerKilo');
   double get orderFeeOrder => remoteConfig.getDouble('orderFeeOrder');
   double get initialPrice => remoteConfig.getDouble('initialPrice');
+  bool get promot => remoteConfig.getBool('promot');
   static double findRaduis = 3000;
 }

@@ -164,7 +164,7 @@ class HelpPage extends StatelessWidget {
                   )
                 ],
               ),
-              Column(
+              if(_config.promot) Column(
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.all(20.0),
@@ -282,7 +282,7 @@ class HelpPage extends StatelessWidget {
                         )),
                   )
                 ],
-              )
+              ) 
             ],
           ),
         ));

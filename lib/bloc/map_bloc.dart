@@ -108,11 +108,11 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       },
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");
-        // TODO optional
+       
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");
-        // TODO optional
+       
       },
     );
     _fcm.subscribeToTopic("announcementuser");
@@ -324,7 +324,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
             icon: drivericon,
             markerId: MarkerId(e.userID),
             infoWindow: InfoWindow(
-                title: e.name, snippet: "${e.phone} ${e.targa}", onTap: () {})))
+                title: e.name, snippet: "${e.targa}", onTap: () {})))
         .toList());
     if (_pickup != null) showPickUpMarker(_pickup);
     if (_destination != null) showDestinationMarker(_destination);
