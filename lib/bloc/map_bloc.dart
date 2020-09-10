@@ -108,11 +108,9 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       },
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");
-       
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");
-       
       },
     );
     _fcm.subscribeToTopic("announcementuser");
@@ -323,8 +321,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
             position: e.cords,
             icon: drivericon,
             markerId: MarkerId(e.userID),
-            infoWindow: InfoWindow(
-                title: e.name, snippet: "${e.targa}", onTap: () {})))
+            infoWindow:
+                InfoWindow(title: e.name, snippet: "${e.targa}", onTap: () {})))
         .toList());
     if (_pickup != null) showPickUpMarker(_pickup);
     if (_destination != null) showDestinationMarker(_destination);
@@ -698,21 +696,26 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   void goToCompletePage(BuildContext context) {
+    Navigator.pop(context);
+    Driver d = currentUser.inProgressTrip.trip.driver;
     auth.updateUser(
         context,
         currentUser
           ..addHistory(currentUser.inProgressTrip..setComplete(true))
           ..setInProgressTrip(null));
     tripInProgress = false;
-
     cancleRoute();
     _markers = [];
     _addYouMarker();
     closeDriverTripListerner();
     resumeDriverStream();
     notifyListeners();
-    Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) => CompletePage()));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => CompletePage(
+                  driver: d,
+                )));
   }
 
   void resumeDriverStream() {

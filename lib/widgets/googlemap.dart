@@ -6,6 +6,7 @@ import 'package:motorride/constants/theme.dart';
 import 'package:motorride/modals/user.dart';
 import 'package:motorride/services/calls_and_messages_service.dart';
 import 'package:motorride/services/service_locator.dart';
+import 'package:motorride/util/alerts.dart';
 import 'package:motorride/widgets/fogeffect.dart';
 import 'package:motorride/widgets/setmarketcenter.dart';
 import 'package:motorride/widgets/searchbar.dart';
@@ -210,7 +211,10 @@ class SosAndMyLocationBtn extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                context.read<MapBloc>().goToCompletePage(context);
+                Alerts.showPromptDialog(context, "Are you sure?",
+                    Text("you're about to complete the current trip."), () {
+                  context.read<MapBloc>().goToCompletePage(context);
+                });
               },
               child: Container(
                   decoration: BoxDecoration(

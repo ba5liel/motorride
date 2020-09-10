@@ -41,7 +41,7 @@ class NodeServer {
     } catch (e) {
       print(e);
       Alerts.showPromptDialog(context, "No Internet Connection!",
-          "No Internet Connection, have you turned on Internet", () {
+          Text("No Internet Connection, have you turned on Internet"), () {
         Navigator.pop(context);
         sendLocation(userId, cord, context);
       });

@@ -15,7 +15,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MyBottomSheet(
-        height: 270,
+        height: 220,
         child: Padding(
           padding: EdgeInsets.only(left: 25.0, right: 25.0, top: 10),
           child: SingleChildScrollView(
@@ -166,7 +166,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
                 SizedBox(
                   height: 10,
                 ),
-                FlatButton(
+                /* FlatButton(
                   onPressed: () {
                     print("cancleTrip\n\n");
                     cancleTrip(context);
@@ -187,7 +187,7 @@ class DriverInfoBottomSheet extends StatelessWidget {
                           Icon(Icons.close, color: Colors.white)
                         ],
                       )),
-                )
+                ) */
               ],
             ),
           ),

@@ -164,125 +164,127 @@ class HelpPage extends StatelessWidget {
                   )
                 ],
               ),
-              if(_config.promot) Column(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Container(
-                        decoration: BoxDecoration(
-                          color: MyTheme.secondaryColor,
-                          borderRadius: BorderRadius.all(Radius.circular(3)),
-                          boxShadow: [
-                            BoxShadow(
-                                blurRadius: 16,
-                                color: Color(0x00).withOpacity(.05),
-                                offset: Offset(0,
-                                    10)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                            BoxShadow(
-                                blurRadius: 18,
-                                color: Color(0x00).withOpacity(.075),
-                                offset: Offset(0,
-                                    12)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-                          ],
-                        ),
-                        padding: EdgeInsets.fromLTRB(10, 18, 10, 10),
-                        child: Column(
-                          children: <Widget>[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text("FAQ",
-                                    style: TextStyle(
-                                        color: Colors.white60, fontSize: 13)),
-                                Icon(Icons.help_outline,
-                                    color: Colors.white60, size: 13)
-                              ],
-                            ),
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(5, 15.0, 5, 5),
-                              child: Row(
+              if (_config.promot)
+                Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Container(
+                          decoration: BoxDecoration(
+                            color: MyTheme.secondaryColor,
+                            borderRadius: BorderRadius.all(Radius.circular(3)),
+                            boxShadow: [
+                              BoxShadow(
+                                  blurRadius: 16,
+                                  color: Color(0x00).withOpacity(.05),
+                                  offset: Offset(0,
+                                      10)), //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                              BoxShadow(
+                                  blurRadius: 18,
+                                  color: Color(0x00).withOpacity(.075),
+                                  offset: Offset(0,
+                                      12)) //0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+                            ],
+                          ),
+                          padding: EdgeInsets.fromLTRB(10, 18, 10, 10),
+                          child: Column(
+                            children: <Widget>[
+                              Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Row(
-                                    children: <Widget>[
-                                      Text("Made with",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w800)),
-                                      Icon(
-                                        Icons.favorite_border,
-                                        color: Colors.red,
-                                      ),
-                                      Text("Knovuslab",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  Text(
-                                    "basic",
-                                    style: TextStyle(
-                                        color: Colors.white60, fontSize: 13),
-                                  ),
+                                  Text("FAQ",
+                                      style: TextStyle(
+                                          color: Colors.white60, fontSize: 13)),
+                                  Icon(Icons.help_outline,
+                                      color: Colors.white60, size: 13)
                                 ],
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text.rich(TextSpan(
-                                  style: TextStyle(color: Colors.white60),
-                                  text: "https://www.knovuslab.com \n\n",
-                                  children: <InlineSpan>[
-                                    TextSpan(
-                                        style: TextStyle(color: Colors.white),
-                                        text:
-                                            "KNOVUSLAB is an innovation lab based in Addis Ababa, Ethiopia. Working on emerging technologies.")
-                                  ])),
-                            ),
-                            Image.asset(
-                              "assets/images/knovuslab.png",
-                              scale: 2,
-                            ),
-                            Divider(),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  GestureDetector(
-                                    onTap: () {
-                                      _callsAndMessagesService
-                                          .launchUrl("www.knovuslab.com");
-                                    },
-                                    child: Row(
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(5, 15.0, 5, 5),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Row(
                                       children: <Widget>[
-                                        Text("Visit",
+                                        Text("Made with",
                                             style: TextStyle(
                                                 color: Colors.white,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold)),
-                                        SizedBox(
-                                          width: 8,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w800)),
+                                        Icon(
+                                          Icons.favorite_border,
+                                          color: Colors.red,
                                         ),
-                                        Icon(Icons.launch,
-                                            color: MyTheme.primaryColor,
-                                            size: 20)
+                                        Text("Knovuslab",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold)),
                                       ],
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      "basic",
+                                      style: TextStyle(
+                                          color: Colors.white60, fontSize: 13),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        )),
-                  )
-                ],
-              ) 
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text.rich(TextSpan(
+                                    style: TextStyle(color: Colors.white60),
+                                    text: "https://www.knovuslab.com \n\n",
+                                    children: <InlineSpan>[
+                                      TextSpan(
+                                          style: TextStyle(color: Colors.white),
+                                          text:
+                                              "KNOVUSLAB is an innovation lab based in Addis Ababa, Ethiopia. Working on emerging technologies.")
+                                    ])),
+                              ),
+                              Image.asset(
+                                "assets/images/knovuslab.png",
+                                scale: 2,
+                              ),
+                              Divider(),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    GestureDetector(
+                                      onTap: () {
+                                        _callsAndMessagesService
+                                            .launchUrl("www.knovuslab.com");
+                                      },
+                                      child: Row(
+                                        children: <Widget>[
+                                          Text("Visit",
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold)),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Icon(Icons.launch,
+                                              color: MyTheme.primaryColor,
+                                              size: 20)
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )),
+                    )
+                  ],
+                )
             ],
           ),
         ));

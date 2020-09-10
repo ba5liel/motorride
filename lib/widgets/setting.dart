@@ -124,7 +124,7 @@ class SettingSection extends StatelessWidget {
               ),
               onTap: () async {
                 Alerts.showPromptDialog(context, "You're about to sign out",
-                    "Are you sure you want to continue", () async {
+                    Text("Are you sure you want to continue"), () async {
                   Authentication auth = new Authentication();
                   await auth.signOut();
                   Navigator.pushReplacement(

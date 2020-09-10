@@ -29,7 +29,7 @@ class Alerts {
   }
 
   static void showPromptDialog(
-      BuildContext context, String title, String msg, Function callback) {
+      BuildContext context, String title, Widget msg, Function callback) {
     Widget okButton = FlatButton(
       child: Text("yes"),
       onPressed: () {
@@ -46,7 +46,7 @@ class Alerts {
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text(title),
-      content: Text(msg),
+      content: msg,
       actions: [okButton, noButton],
     );
 
