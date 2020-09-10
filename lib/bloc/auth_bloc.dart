@@ -59,7 +59,7 @@ class Authentication {
         User.fromMap(json.decode((await getPref()).getString("user")));
     print("Current user seted ${currentUser.tripHistories}");
     Map<String, dynamic> data = (await Firestore.instance
-            .collection('drivers')
+            .collection('users')
             .document(currentUser.userID)
             .get())
         .data;
@@ -185,7 +185,7 @@ class Authentication {
       return;
     }
     Map<String, dynamic> data = (await Firestore.instance
-            .collection('drivers')
+            .collection('users')
             .document(user.uid)
             .get())
         .data;
