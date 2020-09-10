@@ -58,6 +58,12 @@ class Authentication {
     currentUser =
         User.fromMap(json.decode((await getPref()).getString("user")));
     print("Current user seted ${currentUser.tripHistories}");
+    Map<String, dynamic> data = (await Firestore.instance
+            .collection('drivers')
+            .document(currentUser.userID)
+            .get())
+        .data;
+    currentUser.setRating(data["rating"] ?? 3.5);
     return currentUser;
   }
 
@@ -178,7 +184,11 @@ class Authentication {
       Alerts.showSnackBar(context, "Sign in failed");
       return;
     }
-
+    Map<String, dynamic> data = (await Firestore.instance
+            .collection('drivers')
+            .document(user.uid)
+            .get())
+        .data;
     List<TripHistory> tripHistories = [];
     TripHistory inProgress;
     List<DocumentSnapshot> requestHistory = (await Firestore.instance
@@ -196,13 +206,13 @@ class Authentication {
           : tripHistories.add(th);
     });
     currentUser = new User(
-      photo: user.photoUrl,
-      userID: user.uid,
-      inProgressTrip: inProgress,
-      tripHistories: tripHistories,
-      name: user.displayName,
-      phone: phone,
-    );
+        photo: user.photoUrl,
+        userID: user.uid,
+        inProgressTrip: inProgress,
+        tripHistories: tripHistories,
+        name: user.displayName,
+        phone: phone,
+        rating: data["rating"] ?? 3.5);
 
     await Firestore.instance
         .collection('users')

@@ -118,8 +118,11 @@ class _CompletePageState extends State<CompletePage> {
                                 .collection("drivers")
                                 .document(widget.driver.userID)
                                 .updateData({
-                              "rating": (newRateing + widget.driver.rating) / 2
+                              "rating":
+                                  (newRateing + (widget.driver.rating ?? 3.5)) /
+                                      2
                             });
+                            Navigator.pop(context);
                           },
                           child: Container(
                             width: double.infinity,
