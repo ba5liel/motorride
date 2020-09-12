@@ -184,11 +184,10 @@ class Authentication {
       Alerts.showSnackBar(context, "Sign in failed");
       return;
     }
-    Map<String, dynamic> data = (await Firestore.instance
-            .collection('users')
-            .document(user.uid)
-            .get())
-        .data;
+    print(user.uid);
+    Map<String, dynamic> data =
+        (await Firestore.instance.collection('users').document(user.uid).get())
+            .data;
     List<TripHistory> tripHistories = [];
     TripHistory inProgress;
     List<DocumentSnapshot> requestHistory = (await Firestore.instance
@@ -212,7 +211,7 @@ class Authentication {
         tripHistories: tripHistories,
         name: user.displayName,
         phone: phone,
-        rating: data["rating"] ?? 3.5);
+        rating: data != null ? (data["rating"] ?? 3.5) : 3.5);
 
     await Firestore.instance
         .collection('users')

@@ -78,56 +78,60 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
   }
 
   void init() async {
-    await _config.init();
-    print("MapBloc Initalized ${_config.initialPrice}");
-    preCenter = LatLng(9.0336617, 38.7512801);
-    await initializeIcons();
-    await initializeCurrentLocation();
-
-    //listen for my location change
-    sendLocation(currentUser.userID, _currentLocation, context);
-    await listenToLocationChange();
-    _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print("onMessage: $message");
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            content: ListTile(
-              title: Text(message['notification']['title']),
-              subtitle: Text(message['notification']['body']),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                child: Text('Ok'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        );
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print("onLaunch: $message");
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print("onResume: $message");
-      },
-    );
-    _fcm.subscribeToTopic("announcementuser");
-    // listen to rooms
-    if (currentUser.inProgressTrip == null ||
-        currentUser.inProgressTrip.polys == null ||
-        currentUser.inProgressTrip.polys.length == 0) listenToRoomChanges();
     try {
-      _currentLocation = await getCurrentLocation();
+      preCenter = LatLng(9.0336617, 38.7512801);
+      await initializeIcons();
+      await initializeCurrentLocation();
       _addYouMarker();
-      address = (await _geolocator.placemarkFromCoordinates(
-              _currentLocation.latitude, _currentLocation.longitude))[0]
-          .name;
-      print(address);
       notifyListeners();
+
+      print("initializeCurrentLocation $currentLocation");
+      _geolocator
+          .placemarkFromCoordinates(
+              _currentLocation.latitude, _currentLocation.longitude)
+          .then((value) {
+        address = value[0].name;
+        print(address);
+        notifyListeners();
+      });
     } catch (e) {
       Alerts.showSnackBar(context, "No Internet Connection!");
+    } finally {
+      await _config.init();
+      print("MapBloc Initalized ${_config.initialPrice}");
+      //listen for my location change
+      listenToLocationChange();
+      _fcm.configure(
+        onMessage: (Map<String, dynamic> message) async {
+          print("onMessage: $message");
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              content: ListTile(
+                title: Text(message['notification']['title']),
+                subtitle: Text(message['notification']['body']),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('Ok'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          );
+        },
+        onLaunch: (Map<String, dynamic> message) async {
+          print("onLaunch: $message");
+        },
+        onResume: (Map<String, dynamic> message) async {
+          print("onResume: $message");
+        },
+      );
+      _fcm.subscribeToTopic("announcementuser");
+      // listen to rooms
+      if (currentUser.inProgressTrip == null ||
+          currentUser.inProgressTrip.polys == null ||
+          currentUser.inProgressTrip.polys.length == 0) listenToRoomChanges();
     }
   }
 
@@ -225,7 +229,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     mapContoller.animateCamera(CameraUpdate.scrollBy(0, 30));
   }
 
-  Future listenToLocationChange() async {
+  listenToLocationChange() {
     _location.onLocationChanged.listen((event) async {
       _currentLocation = LatLng(event.latitude, event.longitude);
       if (_currentLocation != null &&
@@ -321,8 +325,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
             position: e.cords,
             icon: drivericon,
             markerId: MarkerId(e.userID),
-            infoWindow:
-                InfoWindow(title: e.name, snippet: "${e.targa}", onTap: () {})))
+            infoWindow: InfoWindow(title: "Motorride Driver", onTap: () {})))
         .toList());
     if (_pickup != null) showPickUpMarker(_pickup);
     if (_destination != null) showDestinationMarker(_destination);
