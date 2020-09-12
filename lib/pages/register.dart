@@ -135,6 +135,11 @@ class Register extends StatelessWidget {
                                   context,
                                   phoneNumber[phoneNumber.length - 1].trim());
                               print("signinsuccess $signinsuccess");
+                              if (!signinsuccess) {
+                                Navigator.pop(context);
+                                Alerts.showSnackBar(
+                                    context, "Sign In failed please try again");
+                              }
                             },
                             child: Row(
                               children: <Widget>[
