@@ -23,6 +23,7 @@ class TripBloc {
 //get the closest driver
 //write a request to the database
     if (_driversWithCredit.length == 0) {
+      await newRequest.updateData({"driverID": null, "active": false});
       return denied();
     }
     int _index = 0;
@@ -40,24 +41,8 @@ class TripBloc {
         .document(requestid)
         .snapshots()
         .listen((event) async {
-      print("\n\nnew Request Event ${event.data}");
       if (event.data == null) return;
-      if (timeout == null || !timeout.isActive) {
-        print("Timeout setted \n\n\n\n");
-        timeout = Timer(Config.requestRideTimeOut, () async {
-          _index++;
-          if (_index >= _driversWithCredit.length) {
-            requestResponseStream.cancel();
-            await newRequest
-                .updateData({"driverID": null, "trip": trip.toMap()});
-            return denied();
-          }
-          await newRequest.setData({
-            "driverID": _driversWithCredit[_index].userID,
-            "tip": trip.toMap()
-          });
-        });
-      }
+      print("\n\nnew Request Event ${event.data}");
       if (event.data["accepted"] == null) return;
       if (event.data["phase"] == 1) {
         arrived(th
@@ -65,29 +50,59 @@ class TripBloc {
           ..setPhase(TRIPPHASES.FROMLOCATIONTODESTINATION));
         return;
       }
-      if (event.data["accepted"]) {
-        requestResponseStream.cancel();
-        print("Timeout cancled \n\n\n\n");
-        timeout.cancel();
-        print("_driversWithCredit[0] ${_driversWithCredit[0]}");
-        accepted(th..setPloys(event.data["polys"]));
-        return;
-      }
-      if (_driversWithCredit.length == _index + 1) {
-        requestResponseStream.cancel();
-        timeout.cancel();
-        await newRequest.updateData({"driverID": null, "trip": trip.toMap()});
-        return denied();
-      }
-      if (!event.data["accepted"]) {
-        await newRequest.updateData({
-          "driverID": _driversWithCredit[_index].userID,
-          "trip": trip.toMap()
-        });
-        timeout.cancel();
-        _index++;
-      }
+
+      return await sendRequestToDriver(
+          event, denied, arrived, th, accepted, _index);
     });
+  }
+
+  Future sendRequestToDriver(
+      DocumentSnapshot event,
+      Function denied,
+      Function(TripHistory) arrived,
+      TripHistory th,
+      Function(TripHistory) accepted,
+      int index) async {
+    if (event.data == null) return;
+    if (timeout == null || !timeout.isActive) {
+      print("Timeout setted \n\n\n\n");
+      timeout = Timer(Config.requestRideTimeOut, () async {
+        index++;
+        print("_index $index");
+        if (index >= _driversWithCredit.length) {
+          requestResponseStream.cancel();
+          timeout.cancel();
+          await newRequest.updateData({"driverID": null, "active": false});
+          return denied();
+        }
+        timeout.cancel();
+        await newRequest.setData(
+            {"driverID": _driversWithCredit[index].userID, "accepted": null});
+        sendRequestToDriver(event, denied, arrived, th, accepted, index);
+      });
+    }
+    if (event.data["accepted"]) {
+      requestResponseStream.cancel();
+      print("Timeout cancled \n\n\n\n");
+      timeout.cancel();
+      print("_driversWithCredit[0] ${_driversWithCredit[index]}");
+      accepted(th..setPloys(event.data["polys"]));
+      return;
+    }
+    if (_driversWithCredit.length == index + 1) {
+      requestResponseStream.cancel();
+      timeout.cancel();
+      await newRequest.updateData({"driverID": null, "active": false});
+      return denied();
+    }
+    if (!event.data["accepted"]) {
+      print("${_driversWithCredit[index]} denied request");
+      index++;
+      await newRequest.updateData(
+          {"driverID": _driversWithCredit[index].userID, "accepted": null});
+      timeout.cancel();
+      sendRequestToDriver(event, denied, arrived, th, accepted, index);
+    }
   }
 
   setDriversWithEnougCredit(double amount) {
@@ -115,11 +130,4 @@ class TripBloc {
       "reason": reason
     });
   }
-
-  getroute() {}
-  call() {
-    print(trip);
-  }
-
-  text() {}
 }

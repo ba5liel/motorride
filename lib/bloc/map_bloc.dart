@@ -84,7 +84,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       await initializeCurrentLocation();
       _addYouMarker();
       notifyListeners();
-
+      await sendLocation(currentUser.userID, _currentLocation, context);
       print("initializeCurrentLocation $currentLocation");
       _geolocator
           .placemarkFromCoordinates(
