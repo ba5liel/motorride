@@ -17,6 +17,8 @@ class TripBloc {
   List _driversWithCredit = [];
   final Config _config = locator<Config>();
   Timer timeout;
+  int index = 0;
+
   StreamSubscription<DocumentSnapshot> requestResponseStream;
   Future<void> request(Trip trip, Function(TripHistory) accepted,
       Function denied, Function(TripHistory) arrived) async {
@@ -26,83 +28,86 @@ class TripBloc {
       await newRequest.updateData({"driverID": null, "active": false});
       return denied();
     }
-    int _index = 0;
     newRequest = Firestore.instance.collection("requests").document();
     requestid = newRequest.documentID;
     TripHistory th = TripHistory(
         active: true,
-        trip: trip..setDriver(_driversWithCredit[_index]),
+        trip: trip..setDriver(_driversWithCredit[index]),
         tripID: requestid,
-        driverID: _driversWithCredit[_index].userID,
+        driverID: _driversWithCredit[index].userID,
         userID: currentUser.userID);
     await newRequest.setData(th.toMap());
+
     requestResponseStream = Firestore.instance
         .collection("requests")
         .document(requestid)
         .snapshots()
         .listen((event) async {
+      if (event.data == null || event.data["active"] != true) return;
+
       if (event.data == null) return;
       print("\n\nnew Request Event ${event.data}");
-      if (event.data["accepted"] == null) return;
-      if (event.data["phase"] == 1) {
-        arrived(th
-          ..setPloys(event.data["polys"])
-          ..setPhase(TRIPPHASES.FROMLOCATIONTODESTINATION));
-        return;
-      }
-
-      return await sendRequestToDriver(
-          event, denied, arrived, th, accepted, _index);
+      return await sendRequestToDriver(event, denied, arrived, th, accepted);
     });
   }
 
   Future sendRequestToDriver(
-      DocumentSnapshot event,
-      Function denied,
-      Function(TripHistory) arrived,
-      TripHistory th,
-      Function(TripHistory) accepted,
-      int index) async {
-    if (event.data == null) return;
-    if (timeout == null || !timeout.isActive) {
-      print("Timeout setted \n\n\n\n");
-      timeout = Timer(Config.requestRideTimeOut, () async {
-        index++;
-        print("_index $index");
-        if (index >= _driversWithCredit.length) {
-          requestResponseStream.cancel();
-          timeout.cancel();
-          await newRequest.updateData({"driverID": null, "active": false});
-          return denied();
-        }
-        timeout.cancel();
-        await newRequest.setData(
-            {"driverID": _driversWithCredit[index].userID, "accepted": null});
-        sendRequestToDriver(event, denied, arrived, th, accepted, index);
-      });
-    }
-    if (event.data["accepted"]) {
-      requestResponseStream.cancel();
-      print("Timeout cancled \n\n\n\n");
-      timeout.cancel();
-      print("_driversWithCredit[0] ${_driversWithCredit[index]}");
-      accepted(th..setPloys(event.data["polys"]));
-      return;
-    }
-    if (_driversWithCredit.length == index + 1) {
+    DocumentSnapshot event,
+    Function denied,
+    Function(TripHistory) arrived,
+    TripHistory th,
+    Function(TripHistory) accepted,
+  ) async {
+    if (_driversWithCredit.length <= index) {
       requestResponseStream.cancel();
       timeout.cancel();
       await newRequest.updateData({"driverID": null, "active": false});
       return denied();
     }
+    if (event.data["driverID"] == null) {
+      await ontoTheNextOne(denied, event, arrived, th, accepted);
+    }
+    if (timeout == null || !timeout.isActive) {
+      print("Timeout setted \n\n\n\n");
+      timeout = Timer(Config.requestRideTimeOut, () async {
+        await ontoTheNextOne(denied, event, arrived, th, accepted);
+      });
+    }
+    if (event.data["accepted"] == null) return;
+    if (event.data["accepted"]) {
+      requestResponseStream.cancel();
+      print("Timeout cancled \n\n\n\n");
+      timeout.cancel();
+      timeout = null;
+      print("_driversWithCredit[0] ${_driversWithCredit[index]}");
+      accepted(th..setPloys(event.data["polys"]));
+      return;
+    }
     if (!event.data["accepted"]) {
       print("${_driversWithCredit[index]} denied request");
-      index++;
-      await newRequest.updateData(
-          {"driverID": _driversWithCredit[index].userID, "accepted": null});
-      timeout.cancel();
-      sendRequestToDriver(event, denied, arrived, th, accepted, index);
+      await ontoTheNextOne(denied, event, arrived, th, accepted);
     }
+  }
+
+  Future ontoTheNextOne(
+      Function denied,
+      DocumentSnapshot event,
+      Function(TripHistory) arrived,
+      TripHistory th,
+      Function(TripHistory) accepted) async {
+    index++;
+    print("_index $index");
+    if (index >= _driversWithCredit.length) {
+      requestResponseStream.cancel();
+      timeout.cancel();
+      await newRequest.updateData({"driverID": null, "active": false});
+      return denied();
+    }
+    timeout.cancel();
+    timeout = null;
+    await newRequest.setData(
+        {"driverID": _driversWithCredit[index].userID, "accepted": null});
+    sendRequestToDriver(event, denied, arrived, th, accepted);
   }
 
   setDriversWithEnougCredit(double amount) {
