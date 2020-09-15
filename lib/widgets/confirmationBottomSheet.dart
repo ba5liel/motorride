@@ -146,7 +146,8 @@ class StartTrip extends StatelessWidget {
                   child: InkWell(
                       onTap: () {
                         Navigator.pop(context);
-                        showBottomSheet(
+                        showModalBottomSheet(
+                            isDismissible: false,
                             context: context,
                             builder: (context) {
                               requestRide(context, trip);

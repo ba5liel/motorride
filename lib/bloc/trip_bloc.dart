@@ -24,6 +24,7 @@ class TripBloc {
       Function denied, Function(TripHistory) arrived) async {
 //get the closest driver
 //write a request to the database
+    index = 0;
     if (_driversWithCredit.length == 0) {
       await newRequest.updateData({"driverID": null, "active": false});
       return denied();
@@ -43,8 +44,7 @@ class TripBloc {
         .document(requestid)
         .snapshots()
         .listen((event) async {
-      if (event.data == null || event.data["active"] != true) return;
-
+      if (event.data == null || event.data["active"] == null) return;
       if (event.data == null) return;
       print("\n\nnew Request Event ${event.data}");
       return await sendRequestToDriver(event, denied, arrived, th, accepted);
@@ -65,12 +65,13 @@ class TripBloc {
       return denied();
     }
     if (event.data["driverID"] == null) {
-      await ontoTheNextOne(denied, event, arrived, th, accepted);
+      return await ontoTheNextOne(denied, event, arrived, th, accepted);
     }
     if (timeout == null || !timeout.isActive) {
       print("Timeout setted \n\n\n\n");
       timeout = Timer(Config.requestRideTimeOut, () async {
-        await ontoTheNextOne(denied, event, arrived, th, accepted);
+      print("Timeout reached \n\n\n\n");
+       return  await ontoTheNextOne(denied, event, arrived, th, accepted);
       });
     }
     if (event.data["accepted"] == null) return;

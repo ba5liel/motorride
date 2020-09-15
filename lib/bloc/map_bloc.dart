@@ -639,6 +639,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
                 ]));
       });
     }, () async {
+      Navigator.pop(context);
       closeRoomChangeListener();
       roomChangeSubscription.resume();
       await auth.updateUser(
@@ -647,7 +648,6 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
             ..addHistory(currentUser.inProgressTrip)
             ..setInProgressTrip(null));
       tripInProgress = false;
-      Navigator.pop(context);
       Alerts.showAlertDialog(context, "Service Unavailabe in you're region",
           "Sorry We can not provide our service at this time please try again later");
       notifyListeners();
