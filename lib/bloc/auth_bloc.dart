@@ -181,7 +181,7 @@ class Authentication {
   Future _createUser(
       FirebaseUser user, String phone, BuildContext context) async {
     if (user == null) {
-      Alerts.showSnackBar(context, "Sign in failed");
+      Alerts.showSnackBar(context, "Sign in failed, try again");
       return;
     }
     print(user.uid);
@@ -248,6 +248,7 @@ class Authentication {
       }
     } catch (e) {
       print(e);
+      Navigator.pop(context);
       Alerts.showSnackBar(context, "Sign in failed, Check Internet Connection");
     }
     return user;

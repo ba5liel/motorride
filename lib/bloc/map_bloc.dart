@@ -84,12 +84,13 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       await initializeCurrentLocation();
       _addYouMarker();
       notifyListeners();
-      await sendLocation(currentUser.userID, _currentLocation, context);
       print("initializeCurrentLocation $currentLocation");
       _geolocator
           .placemarkFromCoordinates(
               _currentLocation.latitude, _currentLocation.longitude)
-          .then((value) {
+          .catchError((e) {
+        print("placemarkFromCoordinates carp his pants again");
+      }).then((value) {
         address = value[0].name;
         print(address);
         notifyListeners();
@@ -99,6 +100,8 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
     } finally {
       await _config.init();
       print("MapBloc Initalized ${_config.initialPrice}");
+      sendLocation(currentUser.userID, _currentLocation, context);
+      if (currentUser.inProgressTrip == null) listenToRoomChanges();
       //listen for my location change
       listenToLocationChange();
       _fcm.configure(
@@ -129,16 +132,11 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
       );
       _fcm.subscribeToTopic("announcementuser");
       // listen to rooms
-      if (currentUser.inProgressTrip == null ||
-          currentUser.inProgressTrip.polys == null ||
-          currentUser.inProgressTrip.polys.length == 0) listenToRoomChanges();
     }
   }
 
   Future<void> loadPreviousTrip() async {
-    if (currentUser.inProgressTrip != null &&
-        currentUser.inProgressTrip.polys != null &&
-        currentUser.inProgressTrip.polys.length != 0) {
+    if (currentUser.inProgressTrip != null) {
       print(
           "currentUser.inProgressTrip.trip.complete ${currentUser.inProgressTrip.trip.complete}");
       print("currentUser.inProgressTrip ${currentUser.inProgressTrip}");
@@ -243,6 +241,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
               0.05) {
         try {
           preCenter = _currentLocation;
+          print("listenToLocationChange therefore i changed sent my location");
           await sendLocation(currentUser.userID, _currentLocation, context);
           address = (await _geolocator.placemarkFromCoordinates(
                   _currentLocation.latitude, _currentLocation.longitude))[0]
