@@ -68,7 +68,7 @@ class Authentication {
   }
 
   Future<bool> onPhoneSignIn(String phone, BuildContext context) async {
-    showDialog(context: context, child: LoadingWidget());
+    showDialog(context: context, child: LoadingWidget(caption: "Verifying Number...",));
     _auth.verifyPhoneNumber(
         phoneNumber: phone,
         timeout: Duration(minutes: 2),
@@ -119,7 +119,7 @@ class Authentication {
                           Navigator.pop(context);
                           return;
                         }
-                        showDialog(context: context, child: LoadingWidget());
+                        showDialog(context: context, child: LoadingWidget(caption: "Verifying OTP...",));
                         try {
                           AuthCredential credential =
                               PhoneAuthProvider.getCredential(
@@ -149,7 +149,7 @@ class Authentication {
   Future<bool> onGoogleSignIn(BuildContext context, String phone) async {
     try {
       // show loading
-      showDialog(context: context, child: LoadingWidget());
+      showDialog(context: context, child: LoadingWidget(caption: "getting account..",));
       FirebaseUser user = await _handleSignIn(context);
       await _createUser(user, phone, context);
       return true;
