@@ -91,6 +91,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
           .catchError((e) {
         print("placemarkFromCoordinates carp his pants again");
       }).then((value) {
+        if(value == null) return;
         address = value[0].name;
         print(address);
         notifyListeners();

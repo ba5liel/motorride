@@ -186,8 +186,8 @@ class Authentication {
     }
     print(user.uid);
     Map<String, dynamic> data =
-        (await Firestore.instance.collection('users').document(user.uid).get())
-            .data;
+        (await Firestore.instance.collection('users').document(user.uid).get()).
+            data;
     List<TripHistory> tripHistories = [];
     TripHistory inProgress;
     List<DocumentSnapshot> requestHistory = (await Firestore.instance
