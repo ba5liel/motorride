@@ -52,7 +52,7 @@ class TopInProgressBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              GestureDetector(
+              /* GestureDetector(
                 onTap: () {
                   //MyIntent.textPhone(trip.driver.phone);
                 },
@@ -79,7 +79,7 @@ class TopInProgressBar extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
+              ), */
               AmountDisplayWidget(
                 trip: trip,
                 short: true,
@@ -95,7 +95,7 @@ class TopInProgressBar extends StatelessWidget {
                       style: TextStyle(color: Colors.grey[600], fontSize: 16))
                 ],
               ),
-              GestureDetector(
+              /* GestureDetector(
                 onTap: () {
                   //MyIntent.callPhone(trip.driver.phone);
                 },
@@ -122,7 +122,7 @@ class TopInProgressBar extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-              ),
+              ), */
             ],
           ),
           SizedBox(
