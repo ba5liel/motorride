@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:motorride/bloc/room.dart';
 import 'package:motorride/config/configs.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -36,7 +37,7 @@ class NodeServer {
         Firestore.instance.collection('users').document(userId).updateData({
           "lat": cord.latitude,
           "lng": cord.longitude,
-          "rooms": room["rooms"]
+          "rooms": CellRooms.getallrooms(cord, _config.maxRadius)
         });
     } catch (e) {
       print(e);

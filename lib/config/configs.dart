@@ -10,6 +10,7 @@ class Config {
     remoteConfig.setDefaults(<String, dynamic>{
       'initialPrice': 8.0,
       'pricePerKilo': 10.0,
+      'maxradius': 3,
       'orderFeeOrder': .10,
       'free': false,
       'promot': false,
@@ -38,6 +39,7 @@ class Config {
   String get contact1 => remoteConfig.getString("contact1");
   String get contact2 => remoteConfig.getString("contact2");
   static String googleMapApiKey = "AIzaSyAGbfIielNV8K0E1-mh7bkjTmkMOKNf_fs";
+  String get maxRadius => remoteConfig.getString("maxradius");
   static Duration requestRideTimeOut = Duration(minutes: 1);
   double get pricePerKilo => remoteConfig.getDouble('pricePerKilo');
   double get orderFeeOrder => remoteConfig.getDouble('orderFeeOrder');

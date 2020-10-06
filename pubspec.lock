@@ -520,6 +520,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.24.1"
+  s2geometry:
+    dependency: "direct main"
+    description:
+      name: s2geometry
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.1"
   shared_preferences:
     dependency: "direct main"
     description:
