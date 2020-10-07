@@ -22,7 +22,7 @@ class NodeServer {
     print(cord);
     print("send location called\n\n\n\n\n");
     try {
-      Response res = await dio.post("${_config.baseUrl}/getallrooms",
+      /*  Response res = await dio.post("${_config.baseUrl}/getallrooms",
           data: {
             "lat": cord.latitude.toString(),
             "lng": cord.longitude.toString()
@@ -33,12 +33,13 @@ class NodeServer {
       rooms = room["rooms"];
       if (!unOrdDeepEq(rooms, prerooms)) roomController.add(rooms);
       prerooms = rooms;
-      if (!room["error"])
-        Firestore.instance.collection('users').document(userId).updateData({
-          "lat": cord.latitude,
-          "lng": cord.longitude,
-          "rooms": CellRooms.getallrooms(cord, _config.maxRadius)
-        });
+      if (!room["error"]) */
+      if (!unOrdDeepEq(rooms, prerooms)) roomController.add(rooms);
+      Firestore.instance.collection('users').document(userId).updateData({
+        "lat": cord.latitude,
+        "lng": cord.longitude,
+        "rooms": CellRooms.getallrooms(cord, _config.maxRadius)
+      });
     } catch (e) {
       print(e);
       Alerts.showPromptDialog(context, "No Internet Connection!",

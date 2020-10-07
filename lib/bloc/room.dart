@@ -4,7 +4,7 @@ import 'package:motorride/util/formulas.dart';
 import 'package:s2geometry/s2geometry.dart' as s2;
 
 class CellRooms {
-  static List<String> getallrooms(LatLng latlng, radius) {
+  static List<String> getallrooms(LatLng latlng, double radius) {
     final List<double> bearing = [0, 45, 90, 135, 180, 225, 270, 315, 360];
     List<String> cells = [];
     cells.add((s2.S2CellId.fromLatLng(

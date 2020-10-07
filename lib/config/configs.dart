@@ -39,7 +39,7 @@ class Config {
   String get contact1 => remoteConfig.getString("contact1");
   String get contact2 => remoteConfig.getString("contact2");
   static String googleMapApiKey = "AIzaSyAGbfIielNV8K0E1-mh7bkjTmkMOKNf_fs";
-  String get maxRadius => remoteConfig.getString("maxradius");
+  double get maxRadius => remoteConfig.getDouble("maxradius");
   static Duration requestRideTimeOut = Duration(minutes: 1);
   double get pricePerKilo => remoteConfig.getDouble('pricePerKilo');
   double get orderFeeOrder => remoteConfig.getDouble('orderFeeOrder');
