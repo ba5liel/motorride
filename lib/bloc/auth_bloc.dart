@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -24,8 +24,8 @@ class Authentication {
       "https://www.googleapis.com/auth/admin.directory.user"
     ],
   );
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  FirebaseUser _user;
+  final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
+  auth.User _user;
 
   Future<void> signOut() async {
     await getPref();
@@ -58,11 +58,11 @@ class Authentication {
     currentUser =
         User.fromMap(json.decode((await getPref()).getString("user")));
     print("Current user seted ${currentUser.tripHistories}");
-    Map<String, dynamic> data = (await Firestore.instance
+    Map<String, dynamic> data = (await FirebaseFirestore.instance
             .collection('users')
-            .document(currentUser.userID)
+            .doc(currentUser.userID)
             .get())
-        .data;
+        .data();
     currentUser.setRating(data["rating"] ?? 3.5);
     return currentUser;
   }
@@ -72,8 +72,8 @@ class Authentication {
     _auth.verifyPhoneNumber(
         phoneNumber: phone,
         timeout: Duration(minutes: 2),
-        verificationCompleted: (AuthCredential credential) async {
-          AuthResult result = await _auth.signInWithCredential(credential);
+        verificationCompleted: (auth.AuthCredential credential) async {
+          auth.UserCredential result = await _auth.signInWithCredential(credential);
           _user = result.user;
           if (_user != null) {
             await _createUser(_user, phone, context);
@@ -81,7 +81,7 @@ class Authentication {
             print("Error");
           }
         },
-        verificationFailed: (AuthException exception) {
+        verificationFailed: (auth.FirebaseAuthException exception) {
           Navigator.pop(context);
           print(
             exception.message,
@@ -121,12 +121,12 @@ class Authentication {
                         }
                         showDialog(context: context, child: LoadingWidget(caption: "Verifying OTP...",));
                         try {
-                          AuthCredential credential =
-                              PhoneAuthProvider.getCredential(
+                          auth.AuthCredential credential =
+                              auth.PhoneAuthProvider.credential(
                                   verificationId: verificationId,
                                   smsCode: code);
 
-                          AuthResult result =
+                          auth.UserCredential result =
                               await _auth.signInWithCredential(credential);
                           _user = result.user;
 
@@ -150,7 +150,7 @@ class Authentication {
     try {
       // show loading
       showDialog(context: context, child: LoadingWidget(caption: "getting account..",));
-      FirebaseUser user = await _handleSignIn(context);
+     auth.User user = await _handleSignIn(context);
       await _createUser(user, phone, context);
       return true;
     } catch (e, t) {
@@ -163,10 +163,10 @@ class Authentication {
   Future updateUser(BuildContext context, User newUser,
       {bool saveTocloud = false, Function callBack}) async {
     if (saveTocloud)
-      Firestore.instance
+      FirebaseFirestore.instance
           .collection('users')
-          .document(newUser.userID)
-          .setData(currentUser.toMapCompact());
+          .doc(newUser.userID)
+          .set(currentUser.toMapCompact());
     currentUser = newUser;
     await _setUser(currentUser).then((value) {
       if (callBack != null) callBack(context);
@@ -179,33 +179,33 @@ class Authentication {
   }
 
   Future _createUser(
-      FirebaseUser user, String phone, BuildContext context) async {
+    auth.User user, String phone, BuildContext context) async {
     if (user == null) {
       Alerts.showSnackBar(context, "Sign in failed, try again");
       return;
     }
     print(user.uid);
     Map<String, dynamic> data =
-        (await Firestore.instance.collection('users').document(user.uid).get()).
-            data;
+        (await FirebaseFirestore.instance.collection('users').doc(user.uid).get()).
+            data();
     List<TripHistory> tripHistories = [];
     TripHistory inProgress;
-    List<DocumentSnapshot> requestHistory = (await Firestore.instance
+    List<DocumentSnapshot> requestHistory = (await FirebaseFirestore.instance
             .collection('requests')
             .where('userID', isEqualTo: user.uid)
-            .getDocuments())
-        .documents;
+            .get())
+        .docs;
     requestHistory.forEach((e) {
       TripHistory th = new TripHistory.fromMap({
-        ...e.data,
-        ...{"tripID": e.documentID}
+        ...e.data(),
+        ...{"tripID": e.id}
       });
       th.completed == null && th.active == true && th.accepted == true
           ? inProgress = th
           : tripHistories.add(th);
     });
     currentUser = new User(
-        photo: user.photoUrl,
+        photo: user.photoURL,
         userID: user.uid,
         inProgressTrip: inProgress,
         tripHistories: tripHistories,
@@ -213,10 +213,10 @@ class Authentication {
         phone: phone,
         rating: data != null ? (data["rating"] ?? 3.5) : 3.5);
 
-    await Firestore.instance
+    await FirebaseFirestore.instance
         .collection('users')
-        .document(currentUser.userID)
-        .setData(
+        .doc(currentUser.userID)
+        .set(
           currentUser.toMapCompact(),
         );
     await _setUser(currentUser).catchError((e, s) {
@@ -231,18 +231,18 @@ class Authentication {
     }));
   }
 
-  Future<FirebaseUser> _handleSignIn(context) async {
-    FirebaseUser user;
+  Future<auth.User> _handleSignIn(context) async {
+    auth.User user;
     try {
       bool isSignedIn = await _googleSignIn.isSignedIn();
       if (isSignedIn) {
-        user = await _auth.currentUser();
+        user =  _auth.currentUser;
       } else {
         final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
 
-        final AuthCredential credential = GoogleAuthProvider.getCredential(
+        final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
             accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
         user = (await _auth.signInWithCredential(credential)).user;
       }

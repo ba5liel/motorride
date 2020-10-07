@@ -8,7 +8,7 @@ class MyListeners {
   StreamSubscription<DocumentSnapshot> driverTripStream;
 
   void listenToDrivers(List<dynamic> rooms, Function(QuerySnapshot) callback) {
-    driversStream = Firestore.instance
+    driversStream = FirebaseFirestore.instance
         .collection('drivers')
         .where("room", whereIn: rooms)
         .where("available", isEqualTo: true)
@@ -17,9 +17,9 @@ class MyListeners {
   }
 
   void listenToTripDriver(Function(DocumentSnapshot) callback) {
-    driverTripStream = Firestore.instance
+    driverTripStream = FirebaseFirestore.instance
         .collection('drivers')
-        .document(currentUser.inProgressTrip.driverID)
+        .doc(currentUser.inProgressTrip.driverID)
         .snapshots()
         .listen(callback);
   }

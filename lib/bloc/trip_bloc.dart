@@ -26,26 +26,27 @@ class TripBloc {
 //write a request to the database
     index = 0;
     if (_driversWithCredit.length == 0) {
-      await newRequest.updateData({"driverID": null, "active": false});
+      await newRequest.update({"driverID": null, "active": false});
       return denied();
     }
-    newRequest = Firestore.instance.collection("requests").document();
-    requestid = newRequest.documentID;
+    newRequest = FirebaseFirestore.instance.collection("requests").doc();
+    requestid = newRequest.id;
     TripHistory th = TripHistory(
         active: true,
         trip: trip..setDriver(_driversWithCredit[index]),
         tripID: requestid,
         driverID: _driversWithCredit[index].userID,
         userID: currentUser.userID);
-    await newRequest.setData(th.toMap());
+    await newRequest.set(th.toMap());
 
-    requestResponseStream = Firestore.instance
+    requestResponseStream = FirebaseFirestore.instance
         .collection("requests")
-        .document(requestid)
+        .doc(requestid)
         .snapshots()
         .listen((event) async {
-      if (event.data == null || event.data["active"] == null) return;
-      if (event.data == null) return;
+          Map eventdata = event.data();
+      if (eventdata == null || eventdata["active"] == null) return;
+      if (eventdata == null) return;
       print("\n\nnew Request Event ${event.data}");
       return await sendRequestToDriver(event, denied, arrived, th, accepted);
     });
@@ -61,10 +62,11 @@ class TripBloc {
     if (_driversWithCredit.length <= index) {
       requestResponseStream.cancel();
       timeout.cancel();
-      await newRequest.updateData({"driverID": null, "active": false});
+      await newRequest.update({"driverID": null, "active": false});
       return denied();
     }
-    if (event.data["driverID"] == null) {
+    Map eventdata = event.data();
+    if (eventdata["driverID"] == null) {
       return await ontoTheNextOne(denied, event, arrived, th, accepted);
     }
     if (timeout == null || !timeout.isActive) {
@@ -74,17 +76,17 @@ class TripBloc {
        return  await ontoTheNextOne(denied, event, arrived, th, accepted);
       });
     }
-    if (event.data["accepted"] == null) return;
-    if (event.data["accepted"]) {
+    if (eventdata["accepted"] == null) return;
+    if (eventdata["accepted"]) {
       requestResponseStream.cancel();
       print("Timeout cancled \n\n\n\n");
       timeout.cancel();
       timeout = null;
       print("_driversWithCredit[0] ${_driversWithCredit[index]}");
-      accepted(th..setPloys(event.data["polys"]));
+      accepted(th..setPloys(eventdata["polys"]));
       return;
     }
-    if (!event.data["accepted"]) {
+    if (!eventdata["accepted"]) {
       print("${_driversWithCredit[index]} denied request");
       await ontoTheNextOne(denied, event, arrived, th, accepted);
     }
@@ -101,12 +103,12 @@ class TripBloc {
     if (index >= _driversWithCredit.length) {
       requestResponseStream.cancel();
       timeout.cancel();
-      await newRequest.updateData({"driverID": null, "active": false});
+      await newRequest.update({"driverID": null, "active": false});
       return denied();
     }
     timeout.cancel();
     timeout = null;
-    await newRequest.setData(
+    await newRequest.set(
         {"driverID": _driversWithCredit[index].userID, "accepted": null});
     sendRequestToDriver(event, denied, arrived, th, accepted);
   }
@@ -129,7 +131,7 @@ class TripBloc {
   }
 
   void cancleTrip(String reason) {
-    newRequest.updateData({
+    newRequest.update({
       "cancled": true,
       "complete": false,
       "active": false,

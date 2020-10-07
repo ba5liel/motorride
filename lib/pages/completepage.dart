@@ -114,10 +114,10 @@ class _CompletePageState extends State<CompletePage> {
                         FlatButton(
                           color: MyTheme.primaryColor,
                           onPressed: () {
-                            Firestore.instance
+                            FirebaseFirestore.instance
                                 .collection("drivers")
-                                .document(widget.driver.userID)
-                                .updateData({
+                                .doc(widget.driver.userID)
+                                .update({
                               "rating":
                                   (newRateing + (widget.driver.rating ?? 3.5)) /
                                       2

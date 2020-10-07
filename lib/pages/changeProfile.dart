@@ -346,10 +346,10 @@ class _ChangeProfilePictureState extends State<ChangeProfilePicture> {
                           .then((value) {
                         print("\n\n\nDownloadble URL $value");
                         currentUser.setPhoto(value);
-                        Firestore.instance
+                        FirebaseFirestore.instance
                             .collection("drivers")
-                            .document(currentUser.userID)
-                            .updateData({"photo": value});
+                            .doc(currentUser.userID)
+                            .update({"photo": value});
                       });
                     }
                     double progressPercent = event != null
