@@ -68,24 +68,52 @@ class Authentication {
   }
 
   Future<bool> onPhoneSignIn(String phone, BuildContext context) async {
-    showDialog(context: context, child: LoadingWidget(caption: "Verifying Number...",));
+    showDialog(
+        context: context,
+        child: LoadingWidget(
+          caption: "Verifying Number...",
+        ));
     _auth.verifyPhoneNumber(
         phoneNumber: phone,
         timeout: Duration(minutes: 2),
         verificationCompleted: (auth.AuthCredential credential) async {
-          auth.UserCredential result = await _auth.signInWithCredential(credential);
-          _user = result.user;
-          if (_user != null) {
-            await _createUser(_user, phone, context);
-          } else {
-            print("Error");
+          try {
+            auth.UserCredential result =
+                await _auth.signInWithCredential(credential);
+            _user = result.user;
+            if (_user != null) {
+              await _createUser(_user, phone, context);
+            } else {
+              print("Error");
+            }
+          } catch (e) {
+            Navigator.pop(context);
+
+            showDialog(
+                context: context,
+                child: AlertDialog(
+                  title: Text("Sms Verification failed"),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[Text("please try again! $e")],
+                  ),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text("ok"),
+                      textColor: Colors.white,
+                      color: Colors.blue,
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    )
+                  ],
+                ));
           }
         },
         verificationFailed: (auth.FirebaseAuthException exception) {
           Navigator.pop(context);
-          print(
-            exception.message,
-          );
+          throw exception;
+          print(exception);
           showDialog(
               context: context,
               child: AlertDialog(
@@ -119,7 +147,11 @@ class Authentication {
                           Navigator.pop(context);
                           return;
                         }
-                        showDialog(context: context, child: LoadingWidget(caption: "Verifying OTP...",));
+                        showDialog(
+                            context: context,
+                            child: LoadingWidget(
+                              caption: "Verifying OTP...",
+                            ));
                         try {
                           auth.AuthCredential credential =
                               auth.PhoneAuthProvider.credential(
@@ -142,15 +174,25 @@ class Authentication {
                         }
                       })));
         },
-        codeAutoRetrievalTimeout: null);
+        codeAutoRetrievalTimeout: (String vid) {
+          if (currentUser != null) return;
+          Navigator.pop(context);
+          Alerts.showAlertDialog(
+              context, "Time Out", "TIme out code auto retrieval");
+          print("TIme out code auto retrieval");
+        });
     return _user != null;
   }
 
   Future<bool> onGoogleSignIn(BuildContext context, String phone) async {
     try {
       // show loading
-      showDialog(context: context, child: LoadingWidget(caption: "getting account..",));
-     auth.User user = await _handleSignIn(context);
+      showDialog(
+          context: context,
+          child: LoadingWidget(
+            caption: "getting account..",
+          ));
+      auth.User user = await _handleSignIn(context);
       await _createUser(user, phone, context);
       return true;
     } catch (e, t) {
@@ -178,57 +220,65 @@ class Authentication {
     return _pref;
   }
 
-  Future _createUser(
-    auth.User user, String phone, BuildContext context) async {
+  Future _createUser(auth.User user, String phone, BuildContext context) async {
     if (user == null) {
       Alerts.showSnackBar(context, "Sign in failed, try again");
       return;
     }
     print(user.uid);
-    Map<String, dynamic> data =
-        (await FirebaseFirestore.instance.collection('users').doc(user.uid).get()).
-            data();
-    List<TripHistory> tripHistories = [];
-    TripHistory inProgress;
-    List<DocumentSnapshot> requestHistory = (await FirebaseFirestore.instance
-            .collection('requests')
-            .where('userID', isEqualTo: user.uid)
-            .get())
-        .docs;
-    requestHistory.forEach((e) {
-      TripHistory th = new TripHistory.fromMap({
-        ...e.data(),
-        ...{"tripID": e.id}
-      });
-      th.completed == null && th.active == true && th.accepted == true
-          ? inProgress = th
-          : tripHistories.add(th);
-    });
-    currentUser = new User(
-        photo: user.photoURL,
-        userID: user.uid,
-        inProgressTrip: inProgress,
-        tripHistories: tripHistories,
-        name: user.displayName,
-        phone: phone,
-        rating: data != null ? (data["rating"] ?? 3.5) : 3.5);
+    Map<String, dynamic> data = {};
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(currentUser.userID)
-        .set(
-          currentUser.toMapCompact(),
+    try {
+      DocumentReference dataRef =
+          FirebaseFirestore.instance.collection('drivers').doc(user.uid);
+      print("DocumentReference \n\n error not thrown");
+      DocumentSnapshot docSnap = await dataRef.get();
+      if (docSnap.exists) data = docSnap.data();
+    } catch (e) {
+      print("Error creating user $e");
+    } finally {
+      List<TripHistory> tripHistories = [];
+      TripHistory inProgress;
+      List<DocumentSnapshot> requestHistory = (await FirebaseFirestore.instance
+              .collection('requests')
+              .where('userID', isEqualTo: user.uid)
+              .get())
+          .docs;
+      requestHistory.forEach((e) {
+        TripHistory th = new TripHistory.fromMap({
+          ...e.data(),
+          ...{"tripID": e.id}
+        });
+        th.completed == null && th.active == true && th.accepted == true
+            ? inProgress = th
+            : tripHistories.add(th);
+      });
+      currentUser = new User(
+          photo: user.photoURL,
+          userID: user.uid,
+          inProgressTrip: inProgress,
+          tripHistories: tripHistories,
+          name: user.displayName,
+          phone: phone,
+          rating: data != null ? (data["rating"] ?? 3.5) : 3.5);
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.userID)
+          .set(
+            currentUser.toMapCompact(),
+          );
+      await _setUser(currentUser).catchError((e, s) {
+        print("Error: $e");
+        print("s: $s");
+      });
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (BuildContext context) {
+        return HomePage(
+          auth: this,
         );
-    await _setUser(currentUser).catchError((e, s) {
-      print("Error: $e");
-      print("s: $s");
-    });
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (BuildContext context) {
-      return HomePage(
-        auth: this,
-      );
-    }));
+      }));
+    }
   }
 
   Future<auth.User> _handleSignIn(context) async {
@@ -236,14 +286,16 @@ class Authentication {
     try {
       bool isSignedIn = await _googleSignIn.isSignedIn();
       if (isSignedIn) {
-        user =  _auth.currentUser;
+        user = _auth.currentUser;
       } else {
         final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
 
-        final auth.AuthCredential credential = auth.GoogleAuthProvider.credential(
-            accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+        final auth.AuthCredential credential =
+            auth.GoogleAuthProvider.credential(
+                accessToken: googleAuth.accessToken,
+                idToken: googleAuth.idToken);
         user = (await _auth.signInWithCredential(credential)).user;
       }
     } catch (e) {

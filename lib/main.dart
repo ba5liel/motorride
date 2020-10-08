@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:motorride/bloc/auth_bloc.dart';
 import 'package:motorride/pages/home.dart';
@@ -7,9 +8,10 @@ import 'package:motorride/services/service_locator.dart';
 
 import 'modals/user.dart';
 
-void main() {
+void main() async {
   setupLocator();
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 

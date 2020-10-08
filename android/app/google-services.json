@@ -8,7 +8,47 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:395462408515:android:fa3a68880021978f85d7f6",
+        "mobilesdk_app_id": "1:395462408515:android:1a04baa486493e2085d7f6",
+        "android_client_info": {
+          "package_name": "com.knovuslab.motorridedriver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "395462408515-nsrqs571bs75gbcbs685th89n79v4l0a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.knovuslab.motorridedriver",
+            "certificate_hash": "4274a77ee6d5c4e21c446e6e3a5b50ac744b40c8"
+          }
+        },
+        {
+          "client_id": "395462408515-0cuih6l0kj85gahfq9gpgbqiqf35tvo0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGbfIielNV8K0E1-mh7bkjTmkMOKNf_fs"
+        },
+        {
+          "current_key": "AIzaSyCwnHrdSEy2DnELqB-WxVy48fHxbKOiBpA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395462408515-0bcphmokesfp1o9d3rumrknq4juevlci.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395462408515:android:25a6173910ac003f85d7f6",
         "android_client_info": {
           "package_name": "com.knovuslab.motorrideuser"
         }
@@ -29,6 +69,9 @@
       ],
       "api_key": [
         {
+          "current_key": "AIzaSyAGbfIielNV8K0E1-mh7bkjTmkMOKNf_fs"
+        },
+        {
           "current_key": "AIzaSyCwnHrdSEy2DnELqB-WxVy48fHxbKOiBpA"
         }
       ],
@@ -36,7 +79,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "395462408515-0cuih6l0kj85gahfq9gpgbqiqf35tvo0.apps.googleusercontent.com",
+              "client_id": "395462408515-0bcphmokesfp1o9d3rumrknq4juevlci.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
