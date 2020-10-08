@@ -35,7 +35,7 @@ class NodeServer {
       prerooms = rooms;
       if (!room["error"]) */
       if (!unOrdDeepEq(rooms, prerooms)) roomController.add(rooms);
-      Firestore.instance.collection('users').document(userId).updateData({
+      FirebaseFirestore.instance.collection('users').doc(userId).update({
         "lat": cord.latitude,
         "lng": cord.longitude,
         "rooms": CellRooms.getallrooms(cord, _config.maxRadius)

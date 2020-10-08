@@ -75,5 +75,12 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.google.firebase:firebase-analytics:17.2.2'
+    implementation platform('com.google.firebase:firebase-bom:25.12.0')
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    // Declare the dependency for the Firebase SDK for Google Analytics
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    // Declare the dependencies for any other desired Firebase products
+    // For example, declare the dependencies for Firebase Authentication and Cloud Firestore
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-firestore-ktx'
 }

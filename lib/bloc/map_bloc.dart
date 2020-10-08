@@ -91,7 +91,7 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
           .catchError((e) {
         print("placemarkFromCoordinates carp his pants again");
       }).then((value) {
-        if(value == null) return;
+        if (value == null) return;
         address = value[0].name;
         print(address);
         notifyListeners();
@@ -289,27 +289,30 @@ class MapBloc with ChangeNotifier, NodeServer, TripBloc, MyListeners {
 
   showDriverTripLocationOnMap(DocumentSnapshot doc) {
     drivers = [];
-    LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
-    drivers.add(new Driver.fromMap(doc.data)..setCords(newCords));
+    Map docdata = doc.data();
+    LatLng newCords = new LatLng(docdata["lat"], docdata["lng"]);
+    drivers.add(new Driver.fromMap(docdata)..setCords(newCords));
     showAllMarkers();
     notifyListeners();
   }
 
   showDriversLocationOnMap(QuerySnapshot docs) async {
     print("CHange Detected in DATABase\n");
-    print(docs.documents);
+    print(docs.docs);
+
     _markers = [];
     drivers = [];
-    docs.documents.forEach((doc) async {
-      if (doc.data["online"] == false || doc.data["available"] == false) {
+    docs.docs.forEach((doc) async {
+      Map docdata = doc.data();
+      if (docdata["online"] == false || docdata["available"] == false) {
         return;
       }
       print(doc.data);
-      print(doc.data["online"]);
+      print(docdata["online"]);
 
-      LatLng newCords = new LatLng(doc.data["lat"], doc.data["lng"]);
+      LatLng newCords = new LatLng(docdata["lat"], docdata["lng"]);
 
-      drivers.add(new Driver.fromMap(doc.data)..setCords(newCords));
+      drivers.add(new Driver.fromMap(docdata)..setCords(newCords));
     });
     print(drivers);
 
